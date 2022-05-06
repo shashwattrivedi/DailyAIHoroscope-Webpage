@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Daily AI Horoscope</title>
+    <link rel="stylesheet" href="glider.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="glider.js"></script>
+</head>
+
+<body class="flex-container">
+    <div id="referenceDate" style="display: none;">[[ReferenceDate]]</div>
+    <div class="popup">
+        <button id="close">&times;</button>
+        <h2>Disclaimer</h2>
+        <p>The horoscope seen on this website are generated using language model trained on horoscope available online.
+            These are bunch of random sentences returned by the model and may resemble horoscope. No astrological
+            calculations were done in framing these sentences. Please refrain from believing in them. However, if you
+            experience similar things as mentioned in horoscope - head over to <a href="purpose.html">What is the
+                purpose of
+                this website?</a> </p>
+    </div>
+    <div class="websiteName">
+        <h><a href="index.html" style="color: black;
+            text-decoration: none;">Daily AI Horoscope</a></h>
+    </div>
+
+    <div class="horoscope">
+        <div class="slide-wrap">
+            <div class="slider">
+                <div class="slide" id="Today">
+                    <div style="text-align: center;">
+                        <p class="datetoday">3rd March 2022</p>
+                    </div>
+                </div>
+                <div class="slide" id="Aries">
+                    <div class="horoscopeHeading">
+                        <p >Aries <br> March 21 - April 19 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[AriesToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[AriesYesterday]]</p>
+                    </div>
+                </div>
+                <div class="slide" id="Taurus">
+                    <div class="horoscopeHeading">
+                        <p>Taurus <br> April 20 - May 20 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[TaurusToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[TaurusYesterday]]</p>
+                    </div>                    
+                </div>
+                <div class="slide" id="Gemini">
+                    <div class="horoscopeHeading">
+                        <p>Gemini <br> May 21 - June 20 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[GeminiToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[GeminiYesterday]]</p>
+                    </div>                    
+                </div>
+                <div class="slide" id="Cancer">
+                    <div class="horoscopeHeading">
+                        <p>Cancer <br> June 21 - July 22 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[CancerToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[CancerYesterday]]</p>
+                    </div>                    
+                </div>
+                <div class="slide" id="Leo">
+                    <div class="horoscopeHeading">
+                        <p>Leo <br> July 23 - August 22 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[LeoToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[LeoYesterday]]</p>
+                    </div>                    
+                </div>
+                <div class="slide" id="Virgo">
+                    <div class="horoscopeHeading">
+                        <p>Virgo <br> August 23 - September 22 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[VirgoToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[VirgoYesterday]]</p>
+                    </div>                    
+                </div>
+                <div class="slide" id="Libra">
+                    <div class="horoscopeHeading">
+                        <p>Libra <br> September 23 - October 22 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[LibraToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[LibraYesterday]]</p>
+                    </div>                    
+                </div>
+                <div class="slide" id="Scorpius">
+                    <div class="horoscopeHeading">
+                        <p>Scorpius <br> October 23 - November 21 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[ScorpiusToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[ScorpiusYesterday]]</p>
+                    </div>                    
+                </div>
+                <div class="slide" id="Sagittarius">
+                    <div class="horoscopeHeading">
+                        <p>Sagittarius <br> November 22 - December 21 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[SagittariusToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[SagittariusYesterday]]</p>
+                    </div>                    
+                </div>
+                <div class="slide" id="Capricornus">
+                    <div class="horoscopeHeading">
+                        <p>Capricornus <br> December 22 - January 19 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[CapricornusToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[CapricornusYesterday]]</p>
+                    </div>                    
+                </div>
+                <div class="slide" id="Aquarius">
+                    <div class="horoscopeHeading">
+                        <p>Aquarius <br> January 20 - February 18 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[AquariusToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[AquariusYesterday]]</p>
+                    </div>                    
+                </div>
+                <div class="slide" id="Pisces">
+                    <div class="horoscopeHeading">
+                        <p>Pisces <br> February 19 - March 20 <span class="datetoday">3rd March 2022</span></p>
+                    </div>
+                    <div class="horoscopetoday">
+                        <p>[[PiscesToday]]</p>
+                    </div>
+                    <div class="horoscopeyesterday">
+                        <p>[[PiscesYesterday]]</p>
+                    </div>                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="constellation-slide">
+        <div class="glider-contain">
+            <div class="glider">
+                <div class="constellation">
+                    <div>
+                        <p><br> <br>Scroll left and <br> click on the Zodiac Sign >>> </p>
+                    </div>
+                </div>
+                <div class="constellation"><a href="#Aries">
+                        <div>
+                            <img id="constellation_Aries" src="media/Constellations_Stars/Aries_constellation_stars.png"
+                                class="signimage" />
+                        </div>
+                        <p>Aries &#9800</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Taurus">
+                        <div><img id="constellation_Taurus"
+                                src="media/Constellations_Stars/Taurus_constellation_stars.png" class="signimage" />
+                        </div>
+                        <p>Taurus &#9801</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Gemini">
+                        <div><img id="constellation_Gemini"
+                                src="media/Constellations_Stars/Gemini_constellation_stars.png" class="signimage" />
+                        </div>
+                        <p>Gemini &#9802</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Cancer">
+                        <div><img id="constellation_Cancer"
+                                src="media/Constellations_Stars/Cancer_constellation_stars.png" class="signimage" />
+                        </div>
+                        <p>Cancer &#9803</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Leo">
+                        <div><img id="constellation_Leo" src="media/Constellations_Stars/Leo_constellation_stars.png"
+                                class="signimage" />
+                        </div>
+                        <p>Leo &#9804</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Virgo">
+                        <div><img id="constellation_Virgo"
+                                src="media/Constellations_Stars/Virgo_constellation_stars.png" class="signimage" />
+                        </div>
+                        <p>Virgo &#9805</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Libra">
+                        <div><img id="constellation_Libra"
+                                src="media/Constellations_Stars/Libra_constellation_stars.png" class="signimage" />
+                        </div>
+                        <p>Libra &#9806</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Scorpius">
+                        <div><img id="constellation_Scorpius"
+                                src="media/Constellations_Stars/Scorpius_constellation_stars.png" class="signimage" />
+                        </div>
+                        <p>Scorpius &#9807</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Sagittarius">
+                        <div><img id="constellation_Sagittarius"
+                                src="media/Constellations_Stars/Sagittarius_constellation_stars.png"
+                                class="signimage" /></div>
+                        <p>Sagittarius &#9808</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Capricornus">
+                        <div><img id="constellation_Capricornus"
+                                src="media/Constellations_Stars/Capricornus_constellation_stars.png"
+                                class="signimage" /></div>
+                        <p>Capricornus &#9809</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Aquarius">
+                        <div><img id="constellation_Aquarius"
+                                src="media/Constellations_Stars/Aquarius_constellation_stars.png" class="signimage" />
+                        </div>
+                        <p>Aquarius &#9810</p>
+                    </a>
+                </div>
+                <div class="constellation"><a href="#Pisces">
+                        <div><img id="constellation_Pisces"
+                                src="media/Constellations_Stars/Pisces_constellation_stars.png" class="signimage" />
+                        </div>
+                        <p>Pisces &#9811</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="disclaimer">
+        <div>
+            <p> <b>Disclaimer: </b> The horoscope seen on this website are generated using language model trained on
+                horoscope available online. These are bunch of random sentences returned by the model and may
+                resemble
+                horoscope. No astrological calculations were done in framing these sentences. Please refrain from
+                believing in them. However, if you experience similar things as mentioned in horoscope - head over
+                to <a href="purpose.html">What is the purpose of this website?</a> </p>
+        </div>
+    </div>
+
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var refDateStr = document.getElementById("referenceDate").innerHTML;
+        var refDate = new Date(refDateStr);
+        var prevRefDate = new Date(refDateStr);
+        prevRefDate.setDate(prevRefDate.getDate() - 1);
+
+        var now = new Date();
+        var displayHoroscopeToday =  now >= refDate;
+        var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+        const datetoday = Array.from(
+            document.getElementsByClassName('datetoday')
+            );  
+        const horoscopetodaydiv = Array.from(
+            document.getElementsByClassName('horoscopetoday')
+            );
+        const horoscopeyesterdaydiv = Array.from(
+            document.getElementsByClassName('horoscopeyesterday')
+            );
+            
+        datetoday.forEach(div => {
+            div.innerHTML = displayHoroscopeToday ? refDate.toLocaleDateString("en-US", options)
+            : prevRefDate.toLocaleDateString("en-US", options)
+        });
+
+        horoscopetodaydiv.forEach(div => {
+            div.style.display = displayHoroscopeToday ? "block" : "none";
+            });
+        horoscopeyesterdaydiv.forEach(div => {
+            div.style.display = displayHoroscopeToday ? "none" : "block";
+            });            
+    });
+
+    window.addEventListener('hashchange', () => {
+        var id = window.location.hash.substr(1);
+        Array.from(document.getElementsByTagName('img')).forEach(function (img) {
+            img.src = img.src.replace("_connected.png", ".png");
+        });
+
+        var img = document.querySelector('#constellation_' + id);
+        img.src = img.src.replace(".png", "_connected.png");
+    })
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var glider = new Glider(document.querySelector('.glider'), {
+            slidesToScroll: 1,
+            slidesToShow: 1,
+            draggable: true,
+            rewind: true,
+            scrollLock: true,
+            scrollLockDelay: 80
+        });
+        glider.scrollTo(450)
+    });
+
+    window.addEventListener("load", function () {
+        setTimeout(
+            function open(event) {
+                document.querySelector(".popup").style.display = "block";
+            },
+            1000
+        )
+    });
+
+    document.getElementById("close").addEventListener("click", function () {
+        document.querySelector(".popup").style.display = "none";
+    });
+
+</script>
+
+</html>
