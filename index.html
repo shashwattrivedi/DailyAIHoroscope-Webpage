@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="glider.min.css">
     <link rel="stylesheet" href="style.css">
     <script src="glider.js"></script>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" >
 </head>
 
 <body class="flex-container">
@@ -29,7 +30,7 @@
         <div class="slide-wrap">
             <div class="slider">
                 <div class="slide" id="Today">
-                    <div style="text-align: center;">
+                    <div style="text-align: center; top: 50%; position: relative;">
                         <p class="datetoday">3rd March 2022</p>
                     </div>
                 </div>
@@ -266,6 +267,10 @@
         </div>
     </div>
 
+    <div style="text-align: right;">
+        <a href="https://twitter.com/intent/tweet?button_hashtag=DailyAIHoroscope&ref_src=twsrc%5Etfw" class="twitter-hashtag-button" data-text="You were correct @ShashwatTrive97" data-show-count="false">Tweet #LoveTwitter</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    </div>
+
     <div class="disclaimer">
         <div>
             <p> <b>Disclaimer: </b> The horoscope seen on this website are generated using language model trained on
@@ -346,7 +351,6 @@
     document.getElementById("close").addEventListener("click", function () {
         document.querySelector(".popup").style.display = "none";
     });
-
 </script>
 
 </html>

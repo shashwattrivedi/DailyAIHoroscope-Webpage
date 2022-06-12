@@ -7,14 +7,13 @@
   overflow: hidden;
   box-sizing: border-box;
   display: flex;
-  align-items: center;
 }
 
 .slide {
   width: 100%;
   flex-shrink: 0;
   padding: 2vw;
-  font-size: min(max(4vmin, 3vh), 3vh);
+  font-size: 20px;
   font-family: Helvetica, sans-serif;
   box-sizing: border-box;
 }
@@ -36,6 +35,10 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+span.datetoday {
+  font-size: 20px;
 }
 
 /* Glider override */
@@ -63,7 +66,7 @@
 .horoscopeHeading {
   float: top;
   text-align: left;
-  font-size: min(max(5vmin, 1em), 1em);
+  font-size: 25px;
 }
 
 .horoscopeHeading span{
@@ -73,16 +76,18 @@
 
 .horoscopetoday {
   display: block;
+  padding-top: 10px;
 }
 
 .horoscopeyesterday {
   display: none;
+  padding-top: 10px;
 }
 
 /* WebsiteName Header */
 .websiteName>h {
   height: 15vh;
-  font-size: min(max(10vmin + 50px, 10em), 11vh);
+  font-size: 12vmin;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: black;
   text-decoration: none;
@@ -99,36 +104,44 @@
   margin: 0px;
 }
 
+.constellation p
+{
+  margin: 2px;
+}
+
 .constellation-slide {
   top: 70%;
   contain: content;
   box-sizing: content-box;
   font-size: 2.5vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 30vh;
 }
 
 .constellation-slide a {
   text-decoration: none;
+  margin: 0%;
 }
 
 /* Question-Answer */
 .questions {
   padding: 1vw;
-  font-family: 'Century Gothic';
-  font-size: 4vmin;
+  font-family: 'Tahoma';
+  font-size: 22px;
+  font-weight: bold ;
 }
 
 .answers {
   padding: 1vw;
-  font-family: 'Arial';
-  font-size: 2vmin;
+  font-family: 'Verdana';
+  font-size: 18px;
 }
 
 /* Disclaimer */
 .disclaimer {
   background-color: grey;
   color: azure;
-  font-size: 1vmin;
+  font-size: 2vmin;
   height: auto;
 }
 
@@ -136,7 +149,7 @@
 .popup {
   background-color: #000000;
   width: 50vw;
-  padding: 30px 40px;
+  padding: 10px 15px;
   position: absolute;
   transform: translate(-50%, -50%);
   left: 50%;
@@ -169,7 +182,8 @@
   display: block;
   margin: 0 0 20px auto;
   background-color: transparent;
-  font-size: 4vmin;
+  font-size: 3vmin;
+  text-align: center;
   color: #ffffff;
   background: #3e3e3e;
   border-radius: 100%;
@@ -178,4 +192,10 @@
   border: none;
   outline: none;
   cursor: pointer;
+}
+
+.twitterContainer
+{
+  height: 400px;
+  overflow-x: scroll;
 }
