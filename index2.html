@@ -255,6 +255,10 @@
     <div class="content-container">
         <div class="ad-space">Ad Space</div>
         <main id="horoscope-display">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px;">
+                <div id="sign-name" style="font-size: 24px; font-weight: bold; text-align: left;">Sign Name</div>
+                <div id="date-range" style="font-size: 18px; font-weight: normal; text-align: right;">Date Range | Today's Date</div>
+            </div>
         <div class="slide-wrap">
             <div class="slider">
                 <div class="slide" id="Today" style="align-content: center;">
@@ -529,6 +533,15 @@
         prevRefDate.setDate(prevRefDate.getDate() - 1);
 
         var now = new Date();
+        var signNameElement = document.getElementById("sign-name");
+        var dateRangeElement = document.getElementById("date-range");
+
+        // Example: Update these dynamically based on the selected sign
+        var selectedSign = "Aries"; // Replace with logic to get the selected sign
+        var dateRange = "March 21 - April 19"; // Replace with logic to get the date range
+
+        signNameElement.innerHTML = selectedSign;
+        dateRangeElement.innerHTML = `${dateRange} | ${now.toLocaleDateString("en-US", options)}`;
         var displayHoroscopeToday =  now >= refDate;
         var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 
