@@ -401,13 +401,19 @@
     </div>
 
     <div class="horoscope-bar">
-        <div class="glider-contain">
+        <div class="glider-contain" style="position: relative;">
+            <div style="position: absolute; top: 50%; left: 10px; transform: translateY(-50%); font-size: 24px; cursor: pointer;">
+                &#9664; <!-- Left arrow -->
+            </div>
+            <div style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); font-size: 24px; cursor: pointer;">
+                &#9654; <!-- Right arrow -->
+            </div>
             <div class="glider">
                 <div class="constellation">
                     <div>
-                        <p style="font-size: 16px; font-weight: bold; text-align: center; margin: 10px 0;">
-                            Scroll left or right and click on a Zodiac Sign >>>
-                        </p>
+                        <div style="display: flex; justify-content: center; align-items: center; margin: 10px 0;">
+                            <img src="media/rotating_horoscope.gif" alt="Rotating Horoscope Signs" style="width: 150px; height: 150px;" />
+                        </div>
                     </div>
                 </div>
                 <div class="constellation"><a href="#Aries">
