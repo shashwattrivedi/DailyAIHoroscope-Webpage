@@ -20,7 +20,8 @@
             align-items: center;
             justify-content: space-between;
             height: 100vh;
-            width: 100vw;
+            max-width: 100vw; /* Ensure the webpage does not exceed the viewport width */
+            overflow-x: hidden; /* Prevent horizontal scrolling */
             background-color: #ffffff;
             text-align: center;
         }
@@ -263,7 +264,7 @@
             <div class="slider">
                 <div class="slide" id="Today" style="align-content: center;">
                     <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
-                        <p class="datetoday">3rd March 2022</p>
+                        <p class="datetoday"></p>
                     </div>
                 </div>
                 <div class="slide" id="Aries">
