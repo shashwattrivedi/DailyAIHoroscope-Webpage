@@ -25,12 +25,13 @@
             text-align: center;
         }
         header {
-            padding: 30px; /* Increase padding */
-            font-size: 36px; /* Increase font size */
+            padding: 40px; /* Add more padding for spacing */
+            font-size: 42px; /* Increase font size for emphasis */
             font-weight: bold;
-            width: 100%;
-            background: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center; /* Center align the text */
+            color: #333; /* Add a darker color for better contrast */
+            background: linear-gradient(to right, #f8f9fa, #e9ecef); /* Add a subtle gradient */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Enhance shadow for depth */
         }
         .content-container {
             display: flex;
@@ -58,16 +59,17 @@
         main {
             flex: 2;
             display: flex;
-            /* align-items: center; */
-            /* justify-content: center; */
-            padding: 1%;
-            font-size: 32px;
-            background: white;
+            flex-direction: column; /* Ensure content stacks vertically */
+            align-items: center; /* Center align content */
+            justify-content: center; /* Center align content vertically */
+            padding: 2%; /* Add more padding for spacing */
+            font-size: 28px; /* Slightly reduce font size for balance */
+            background: #ffffff; /* Keep a clean white background */
             width: 100%;
-            max-width: 900px; /* Make the middle section bigger */
-            min-height: 500px; /* Increased height */
-            border-radius: 10px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            max-width: 950px; /* Slightly increase width */
+            min-height: 550px; /* Increase height for better spacing */
+            border-radius: 15px; /* Increase border radius for a softer look */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Enhance shadow for depth */
         }
         .horoscope-bar {
             display: flex;
@@ -88,9 +90,17 @@
         }
 
         .signimage {
-            width: 20vh;
-            height: calc(20vh - 8px);
-            border-width: 4px;
+            width: 18vh; /* Slightly reduce size for balance */
+            height: calc(18vh - 6px); /* Adjust height proportionally */
+            border-width: 3px; /* Reduce border width */
+            border-radius: 10px; /* Add rounded corners for a modern look */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+            transition: transform 0.3s ease, box-shadow 0.3s ease; /* Add hover effect */
+        }
+
+        .signimage:hover {
+            transform: scale(1.1); /* Slightly enlarge on hover */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhance shadow on hover */
         }
 
                 .slider {
