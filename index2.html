@@ -27,9 +27,12 @@
         }
         header {
             padding: 20px 0;
-            font-size: 48px;
+            font-size: 90px;
             font-weight: 400;
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: 'Times New Roman', Times, serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 3px solid #2d2d2d;
             text-align: center;
             color: #2d2d2d;
             background: #ffffff;
@@ -129,11 +132,10 @@
 }
 
 .slide-wrap {
-    /* position: relative; */
-    /* height: 100%; */
-    /* display: flex; */
-    /* align-items: center; */
-    overflow: hidden;
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .slide-wrap span.datetoday {
@@ -257,16 +259,15 @@
     <div class="content-container">
         <div class="ad-space">Ad Space</div>
         <main id="horoscope-display">
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px; margin-bottom: 20px;">
+            <!-- <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px; margin-bottom: 20px;">
                 <div id="sign-name" style="font-size: 24px; font-weight: bold; text-align: left;">Sign Name</div>
                 <div id="date-range" style="font-size: 18px; font-weight: normal; text-align: right;">Date Range | Today's Date</div>
-            </div>
+            </div> -->
         <div class="slide-wrap">
             <div class="slider">
-                <div class="slide" id="Today" style="align-content: center; text-align: center;">
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 20px;">
-                        <img src="https://i.giphy.com/media/XIqCQx02E1U9W4yrLT/giphy.webp" style="width: 200px; height: auto;">
-                        <p style="font-size: 24px; color: #666; max-width: 300px;">Swipe left to explore your zodiac sign's AI-generated horoscope</p>
+                <div class="slide" id="Today">
+                    <div style="text-align: center; top: 50%; position: relative;">
+                        <p class="datetoday">3rd March 2022</p>
                     </div>
                 </div>
                 <div class="slide" id="Aries">
