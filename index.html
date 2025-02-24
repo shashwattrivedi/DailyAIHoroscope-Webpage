@@ -1,107 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="glider.min.css"> <!-- Include Glider CSS -->
-    <link rel="stylesheet" href="style.css"> <!-- Include Glider CSS -->
+    <link rel="stylesheet" href="style.css">
+    <script src="glider.js"></script>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" >
     <title>Daily AI Horoscope</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            height: 100vh;
-            width: 100vw;
-            background-color: #f4f4f4;
-            text-align: center;
-        }
-        header {
-            padding: 20px;
-            font-size: 28px;
-            font-weight: bold;
-            width: 100%;
-            background: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .content-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            flex: 1;
-        }
-        .ad-space {
-            flex: 1;
-            height: 100%;
-            max-width: 200px;
-            background: #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: #666;
-        }
-        main {
-            flex: 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            font-size: 28px;
-            background: white;
-            width: 100%;
-            max-width: 800px;
-            min-height: 250px;
-            border-radius: 10px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-        .horoscope-bar {
-            display: flex;
-            overflow-x: auto;
-            width: 100%;
-            padding: 10px;
-            background: #ddd;
-            gap: 10px;
-            white-space: nowrap;
-        }
-        .horoscope-bar button {
-            padding: 15px;
-            border: none;
-            background: white;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        @media (max-width: 768px) {
-            .content-container {
-                flex-direction: column;
-            }
-            .ad-space {
-                width: 100%;
-                max-width: 100%;
-                height: 80px;
-                margin-bottom: 10px;
-            }
-            main {
-                width: 90%;
-            }
-        }
-    </style>
 </head>
-
 <body>
-    <div id="referenceDate" style="display: none;">[[ReferenceDate]]</div>
+    <div id="referenceDate" style="display: none;">October 25, 2023</div>
     <div class="popup">
         <button id="close">&times;</button>
         <h2>Disclaimer</h2>
@@ -113,14 +22,13 @@
                 this website?</a> </p>
     </div>
     <header>Daily AI Horoscope</header>
-
-    <!-- <div class="websiteName">
-        <h><a href="index.html" style="color: black;
-            text-decoration: none;">Daily AI Horoscope</a></h>
-    </div> -->
-    <!-- <main id="horoscope-display">Select a horoscope to see your prediction</main> -->
-    <div class="ad-space">Ad Space</div>
-    <main class="horoscope-display">
+    <div class="content-container">
+        <div class="ad-space">Ad Space</div>
+        <main id="horoscope-display">
+            <!-- <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px; margin-bottom: 20px;">
+                <div id="sign-name" style="font-size: 24px; font-weight: bold; text-align: left;">Sign Name</div>
+                <div id="date-range" style="font-size: 18px; font-weight: normal; text-align: right;">Date Range | Today's Date</div>
+            </div> -->
         <div class="slide-wrap">
             <div class="slider">
                 <div class="slide" id="Today">
@@ -148,7 +56,7 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[TaurusYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="slide" id="Gemini">
                     <div class="horoscopeHeading">
@@ -159,7 +67,7 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[GeminiYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="slide" id="Cancer">
                     <div class="horoscopeHeading">
@@ -170,7 +78,7 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[CancerYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="slide" id="Leo">
                     <div class="horoscopeHeading">
@@ -181,7 +89,7 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[LeoYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="slide" id="Virgo">
                     <div class="horoscopeHeading">
@@ -192,7 +100,7 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[VirgoYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="slide" id="Libra">
                     <div class="horoscopeHeading">
@@ -203,7 +111,7 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[LibraYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="slide" id="Scorpius">
                     <div class="horoscopeHeading">
@@ -214,7 +122,7 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[ScorpiusYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="slide" id="Sagittarius">
                     <div class="horoscopeHeading">
@@ -225,7 +133,7 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[SagittariusYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="slide" id="Capricornus">
                     <div class="horoscopeHeading">
@@ -236,7 +144,7 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[CapricornusYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="slide" id="Aquarius">
                     <div class="horoscopeHeading">
@@ -247,7 +155,7 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[AquariusYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
                 <div class="slide" id="Pisces">
                     <div class="horoscopeHeading">
@@ -258,19 +166,25 @@
                     </div>
                     <div class="horoscopeyesterday">
                         <p>[[PiscesYesterday]]</p>
-                    </div>                    
+                    </div>
                 </div>
             </div>
         </div>
+        </main>
+        <div class="ad-space">Ad Space</div>
     </div>
-    <div class="ad-space">Ad Space</div>
 
-    <div class="constellation-slide">
-        <div class="glider-contain">
+    <div class="horoscope-bar">
+        <div class="glider-contain" style="position: relative;">
+            <div style="position: absolute; top: 50%; left: 10px; transform: translateY(-50%); font-size: 24px; cursor: pointer;">
+                &#9664; <!-- Left arrow -->
+            </div>
+            <div style="position: absolute; top: 50%; right: 10px; transform: translateY(-50%); font-size: 24px; cursor: pointer;">
+                &#9654; <!-- Right arrow -->
+            </div>
             <div class="glider">
                 <div class="constellation">
                     <div>
-                        <p><br> <br>Scroll left and <br> click on the Zodiac Sign >>> </p>
                     </div>
                 </div>
                 <div class="constellation"><a href="#Aries">
@@ -278,84 +192,84 @@
                             <img id="constellation_Aries" src="media/Constellations_Stars/Aries_constellation_stars.png"
                                 class="signimage" />
                         </div>
-                        <p>Aries &#9800</p>
+                        <p>Aries &#9800;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Taurus">
                         <div><img id="constellation_Taurus"
                                 src="media/Constellations_Stars/Taurus_constellation_stars.png" class="signimage" />
                         </div>
-                        <p>Taurus &#9801</p>
+                        <p>Taurus &#9801;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Gemini">
                         <div><img id="constellation_Gemini"
                                 src="media/Constellations_Stars/Gemini_constellation_stars.png" class="signimage" />
                         </div>
-                        <p>Gemini &#9802</p>
+                        <p>Gemini &#9802;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Cancer">
                         <div><img id="constellation_Cancer"
                                 src="media/Constellations_Stars/Cancer_constellation_stars.png" class="signimage" />
                         </div>
-                        <p>Cancer &#9803</p>
+                        <p>Cancer &#9803;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Leo">
                         <div><img id="constellation_Leo" src="media/Constellations_Stars/Leo_constellation_stars.png"
                                 class="signimage" />
                         </div>
-                        <p>Leo &#9804</p>
+                        <p>Leo &#9804;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Virgo">
                         <div><img id="constellation_Virgo"
                                 src="media/Constellations_Stars/Virgo_constellation_stars.png" class="signimage" />
                         </div>
-                        <p>Virgo &#9805</p>
+                        <p>Virgo &#9805;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Libra">
                         <div><img id="constellation_Libra"
                                 src="media/Constellations_Stars/Libra_constellation_stars.png" class="signimage" />
                         </div>
-                        <p>Libra &#9806</p>
+                        <p>Libra &#9806;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Scorpius">
                         <div><img id="constellation_Scorpius"
                                 src="media/Constellations_Stars/Scorpius_constellation_stars.png" class="signimage" />
                         </div>
-                        <p>Scorpius &#9807</p>
+                        <p>Scorpius &#9807;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Sagittarius">
                         <div><img id="constellation_Sagittarius"
                                 src="media/Constellations_Stars/Sagittarius_constellation_stars.png"
                                 class="signimage" /></div>
-                        <p>Sagittarius &#9808</p>
+                        <p>Sagittarius &#9808;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Capricornus">
                         <div><img id="constellation_Capricornus"
                                 src="media/Constellations_Stars/Capricornus_constellation_stars.png"
                                 class="signimage" /></div>
-                        <p>Capricornus &#9809</p>
+                        <p>Capricornus &#9809;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Aquarius">
                         <div><img id="constellation_Aquarius"
                                 src="media/Constellations_Stars/Aquarius_constellation_stars.png" class="signimage" />
                         </div>
-                        <p>Aquarius &#9810</p>
+                        <p>Aquarius &#9810;</p>
                     </a>
                 </div>
                 <div class="constellation"><a href="#Pisces">
                         <div><img id="constellation_Pisces"
                                 src="media/Constellations_Stars/Pisces_constellation_stars.png" class="signimage" />
                         </div>
-                        <p>Pisces &#9811</p>
+                        <p>Pisces &#9811;</p>
                     </a>
                 </div>
             </div>
@@ -376,8 +290,8 @@
                     this website?</a> </p>
         </div>
     </div>
-
 </body>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         var refDateStr = document.getElementById("referenceDate").innerHTML;
@@ -386,6 +300,26 @@
         prevRefDate.setDate(prevRefDate.getDate() - 1);
 
         var now = new Date();
+        var signNameElement = document.getElementById("sign-name");
+        var dateRangeElement = document.getElementById("date-range");
+
+        // Example: Update these dynamically based on the selected sign
+        const signs = {
+            Aries: "March 21 - April 19",
+            Taurus: "April 20 - May 20",
+            Gemini: "May 21 - June 20",
+            Cancer: "June 21 - July 22",
+            Leo: "July 23 - August 22",
+            Virgo: "August 23 - September 22",
+            Libra: "September 23 - October 22",
+            Scorpius: "October 23 - November 21",
+            Sagittarius: "November 22 - December 21",
+            Capricornus: "December 22 - January 19",
+            Aquarius: "January 20 - February 18",
+            Pisces: "February 19 - March 20",
+        };
+
+
         var displayHoroscopeToday =  now >= refDate;
         var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 
@@ -398,7 +332,7 @@
         const horoscopeyesterdaydiv = Array.from(
             document.getElementsByClassName('horoscopeyesterday')
             );
-            
+
         datetoday.forEach(div => {
             div.innerHTML = displayHoroscopeToday ? refDate.toLocaleDateString("en-US", options)
             : prevRefDate.toLocaleDateString("en-US", options)
@@ -409,7 +343,7 @@
             });
         horoscopeyesterdaydiv.forEach(div => {
             div.style.display = displayHoroscopeToday ? "none" : "block";
-            });            
+            });
     });
 
     window.addEventListener('hashchange', () => {
