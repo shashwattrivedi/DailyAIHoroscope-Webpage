@@ -15,9 +15,10 @@ The constellations used on the wesite are created using the images on IAU. The i
 # Contribute
 
 You can contribute to the website's design, content (except the horoscope) and share your visualisation of the constellation, there is no standard representation for constellation.
-If you find any issue with the content on the page ( except horoscope - that is not monitored ), please raise issue on this repository. Webpage does not generate any revenue. Selfless contribution will be appreciated.
+If you find any issue with the content on the page ( except horoscope ), please raise issue on this repository.
 
 # Credits
 
 Thanks [iau.org](http://www.iau.org/) (IAU and Sky & Telescope) for publicly sharing the sky chart.
+
 Glider.js : [GitHub - NickPiscitelli/Glider.js: A fast, lightweight, dependency free, native scrolling carousel alternative!](https://github.com/NickPiscitelli/Glider.js/)
