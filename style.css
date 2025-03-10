@@ -1,3 +1,7 @@
+.horoscopeDataContainer {
+  display: none;
+}
+
 /* Slider */
 .slider {
   width: 100%;
