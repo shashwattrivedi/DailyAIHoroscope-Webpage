@@ -1807,32 +1807,32 @@
   <!-- Invisible div to store today's horoscope data -->
   <div class="horoscopeDataContainer">
     <div id="horoscopeDataToday">
-        Aries: Despite your fears, opportunities will arise to turn disappointment into strength.
-        Taurus: Although uncertainty lingers, there is a path ahead that will quell your anxiety.
-        Gemini: Playfulness will be your motivation, leading you to unexpected joys.
-        Cancer: Your caution will guide your independence, bringing stability to your path.
-        Leo: Balance will be key today, motivating you to achieve with grace.
-        Virgo: Optimism will color your playful spirit, bringing cheer to your day.
-        Libra: Even in stress and uncertainty, clarity will eventually light your way.
-        Scorpius: As restlessness prevails, hesitation will give way to newfound clarity.
-        Sagittarius: Though feeling unmotivated, a hidden spark will help you overcome being overwhelmed.
-        Capricornus: Despite doubt and disheartenment, perseverance will eventually renew your faith.
-        Aquarius: With strong independence, motivation will carry you to new heights.
+        Aries: Despite your fears, opportunities will arise to turn disappointment into strength.::
+        Taurus: Although uncertainty lingers, there is a path ahead that will quell your anxiety.::
+        Gemini: Playfulness will be your motivation, leading you to unexpected joys.::
+        Cancer: Your caution will guide your independence, bringing stability to your path.::
+        Leo: Balance will be key today, motivating you to achieve with grace.::
+        Virgo: Optimism will color your playful spirit, bringing cheer to your day.::
+        Libra: Even in stress and uncertainty, clarity will eventually light your way.::
+        Scorpio: As restlessness prevails, hesitation will give way to newfound clarity.::
+        Sagittarius: Though feeling unmotivated, a hidden spark will help you overcome being overwhelmed.::
+        Capricorn: Despite doubt and disheartenment, perseverance will eventually renew your faith.::
+        Aquarius: With strong independence, motivation will carry you to new heights.::
         Pisces: Creativity will blossom into joy, filling your day with imaginative wonders.
     </div>
 
     <div id="horoscopeDataYesterday">
-        Aries: Embrace tranquility today, reflecting on moments of inner peace.
-        Taurus: Your motivation will fuel energetic pursuits, bringing vibrant outcomes.
-        Gemini: Enthusiasm for discovery will propel you to exciting new horizons.
-        Cancer: Navigating emotions may bring conflict, yet healing awaits beyond disappointment.
-        Leo: Seek solace in moments of solitude when the world feels overwhelming.
-        Virgo: Doubts might surface, but stay resilient in the face of discouragement.
-        Libra: Weigh your options carefully, finding clarity amid inner conflict.
-        Scorpius: Let creativity blossom today, offering thoughtful insights and fresh ideas.
-        Sagittarius: Frustration may cloud your day, but sadness can lead to deeper understanding.
-        Capricornus: Reflect on your goals and cherish the independence that supports them.
-        Aquarius: Allow doubt to guide growth, even when disheartened.
+        Aries: Embrace tranquility today, reflecting on moments of inner peace.::
+        Taurus: Your motivation will fuel energetic pursuits, bringing vibrant outcomes.::
+        Gemini: Enthusiasm for discovery will propel you to exciting new horizons.::
+        Cancer: Navigating emotions may bring conflict, yet healing awaits beyond disappointment.::
+        Leo: Seek solace in moments of solitude when the world feels overwhelming.::
+        Virgo: Doubts might surface, but stay resilient in the face of discouragement.::
+        Libra: Weigh your options carefully, finding clarity amid inner conflict.::
+        Scorpio: Let creativity blossom today, offering thoughtful insights and fresh ideas.::
+        Sagittarius: Frustration may cloud your day, but sadness can lead to deeper understanding.::
+        Capricorn: Reflect on your goals and cherish the independence that supports them.::
+        Aquarius: Allow doubt to guide growth, even when disheartened.::
         Pisces: Reflect on aspirations, letting motivation guide your journey forward.
     </div>
   </div>
@@ -1894,20 +1894,21 @@
       const dataElement = document.getElementById(elementId);
       if (!dataElement) return {};
 
-      const horoscopeText = dataElement.textContent || dataElement.innerText;
-      const horoscopeLines = horoscopeText.split("\n");
+        const horoscopeText = dataElement.textContent || dataElement.innerText;
+        const horoscopeLines = horoscopeText.split('::');
 
       const horoscopes = {};
       horoscopeLines.forEach((line) => {
         if (line.trim() === "") return;
 
-        const parts = line.split(":");
-        if (parts.length >= 2) {
-          const sign = parts[0].trim();
-          const horoscope = parts.slice(1).join(":").trim();
-          horoscopes[sign] = horoscope;
-        }
-      });
+            line = line.trim();
+            const parts = line.split(':');
+            if (parts.length >= 2) {
+                const sign = parts[0].trim();
+                const horoscope = parts.slice(1).join(':').trim();
+                horoscopes[sign] = horoscope;
+            }
+        });
 
       return horoscopes;
     }
