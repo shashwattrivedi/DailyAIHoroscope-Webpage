@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Zodiac Constellations</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #000;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            border-radius: 3px;
+        }
+        button:hover {
+            background: #444;
+        }
+    </style>
+</head>
+<body>
+    <div id="ui"></div>
+
+    <script type="module">
+        import * as THREE from 'https://cdn.skypack.dev/three@0.132.2';
+        import gsap from 'https://cdn.skypack.dev/gsap';
+
+        const scene = new THREE.Scene();
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const aspect = width / height;
+        const d = 20;
+
+        const camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
+        camera.position.set(0, 0, 10);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(width, height);
+        document.body.appendChild(renderer.domElement);
+
+        window.addEventListener('resize', () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const aspect = width / height;
+
+            camera.left = -d * aspect;
+            camera.right = d * aspect;
+            camera.top = d;
+            camera.bottom = -d;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(width, height);
+        });
+
+        // Placeholder data for 12 Zodiac constellations (replace with real data if desired)
+        const constellations = [
+            { name: "Aries", stars: [ [0,0], [2,1], [3,3], [5,5] ], lines: [ [0,1], [1,2], [2,3] ] },
+            { name: "Taurus", stars: [ [0,0], [1,2], [2,3], [4,1] ], lines: [ [0,1], [1,2], [2,3] ] },
+            { name: "Gemini", stars: [ [0,0], [2,1], [3,0], [4,2], [5,5] ], lines: [ [0,1], [1,2], [2,3], [3,4] ] },
+            { name: "Cancer", stars: [ [0,0], [1,1], [2,2], [3,1], [4,0] ], lines: [ [0,1], [1,2], [2,3], [3,4] ] },
+            { name: "Leo", stars: [ [0,0], [2,2], [3,4], [5,5], [6,3] ], lines: [ [0,1], [1,2], [2,3], [3,4] ] },
+            { name: "Virgo", stars: [ [0,0], [2,1], [3,3], [4,5], [5,3], [6,1] ], lines: [ [0,1], [1,2], [2,3], [3,4], [4,5] ] },
+            { name: "Libra", stars: [ [0,0], [1,2], [3,2], [4,0] ], lines: [ [0,1], [1,2], [2,3] ] },
+            { name: "Scorpio", stars: [ [0,0], [1,1], [2,2], [3,3], [4,2], [5,1] ], lines: [ [0,1], [1,2], [2,3], [3,4], [4,5] ] },
+            { name: "Sagittarius", stars: [ [0,0], [1,2], [2,3], [4,4], [5,2] ], lines: [ [0,1], [1,2], [2,3], [3,4] ] },
+            { name: "Capricorn", stars: [ [0,0], [1,1], [2,3], [4,4], [5,3] ], lines: [ [0,1], [1,2], [2,3], [3,4] ] },
+            { name: "Aquarius", stars: [ [0,0], [1,1], [2,1], [3,0], [4,-1] ], lines: [ [0,1], [1,2], [2,3], [3,4] ] },
+            { name: "Pisces", stars: [ [0,0], [1,2], [2,4], [3,2], [4,0] ], lines: [ [0,1], [1,2], [2,3], [3,4] ] },
+        ];
+
+        let stars = [];
+        let lines = [];
+
+        function createStar(x, y, size = 0.2) {
+            const geometry = new THREE.CircleGeometry(size, 32);
+            const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const star = new THREE.Mesh(geometry, material);
+            star.position.set(x, y, 0);
+            scene.add(star);
+            return star;
+        }
+
+        function createLine(pointsArray) {
+            const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+            const points = pointsArray.map(p => new THREE.Vector3(p.x, p.y, 0));
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            return line;
+        }
+
+        function clearConstellation() {
+            stars.forEach(star => scene.remove(star));
+            lines.forEach(line => scene.remove(line));
+            stars = [];
+            lines = [];
+        }
+
+        function showConstellation(index) {
+            const constellation = constellations[index];
+            const starData = constellation.stars;
+            const lineData = constellation.lines;
+
+            clearConstellation();
+
+            // Create stars
+            starData.forEach(([x, y]) => {
+                const randomSize = 0.15 + Math.random() * 0.05;
+                stars.push(createStar(x, y, randomSize));
+            });
+
+            // Create lines
+            lineData.forEach(([startIdx, endIdx]) => {
+                const start = { x: starData[startIdx][0], y: starData[startIdx][1] };
+                const end = { x: starData[endIdx][0], y: starData[endIdx][1] };
+                lines.push(createLine([start, end]));
+            });
+        }
+
+        function transitionToConstellation(index) {
+            const constellation = constellations[index];
+            const starData = constellation.stars;
+            const lineData = constellation.lines;
+
+            // Animate stars
+            starData.forEach(([x, y], idx) => {
+                if (stars[idx]) {
+                    gsap.to(stars[idx].position, {
+                        x,
+                        y,
+                        duration: 1.5,
+                        ease: 'power2.inOut'
+                    });
+                } else {
+                    const randomSize = 0.15 + Math.random() * 0.05;
+                    const star = createStar(x, y, randomSize);
+                    stars.push(star);
+                }
+            });
+
+            // Remove excess stars
+            while (stars.length > starData.length) {
+                const star = stars.pop();
+                scene.remove(star);
+            }
+
+            // Animate/recreate lines
+            lines.forEach(line => scene.remove(line));
+            lines = [];
+
+            lineData.forEach(([startIdx, endIdx]) => {
+                const start = { x: starData[startIdx][0], y: starData[startIdx][1] };
+                const end = { x: starData[endIdx][0], y: starData[endIdx][1] };
+                lines.push(createLine([start, end]));
+            });
+        }
+
+        // UI buttons
+        const ui = document.getElementById('ui');
+        constellations.forEach((constellation, idx) => {
+            const btn = document.createElement('button');
+            btn.textContent = constellation.name;
+            btn.addEventListener('click', () => transitionToConstellation(idx));
+            ui.appendChild(btn);
+        });
+
+        // Show the first constellation to start
+        showConstellation(0);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

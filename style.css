@@ -1,3 +1,230 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Pridi", serif;
+  font-size: 4px;
+}
+
+.underdog-regular {
+  font-family: "Pridi", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+div, p, span, ul, li, label, select, option, a {
+  font-size: 4rem;
+}
+
+h1 {
+  font-size: calc(2rem * 4);
+}
+
+h2 {
+  font-size: calc(1.5rem * 4);
+}
+
+h3 {
+  font-size: calc(1.17rem * 4);
+}
+
+h4 {
+  font-size: calc(1rem * 4);
+}
+
+h5 {
+  font-size: calc(0.83rem * 4);
+}
+
+h6 {
+  font-size: calc(0.67rem * 4);
+}
+
+header {
+  padding: 15px 0;
+  font-size: 16rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  color: #2d2d2d;
+  background: #ffffff;
+  border-bottom: 1px solid #eee;
+  line-height: 1.2;
+}
+
+.page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4rem;
+  padding: 0 4rem;
+  width: 100%;
+  transition: all .4s ease-in;
+  height: calc(100vh - 120px);
+}
+
+.page-1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 0;
+  width: calc(50% - 2rem);
+}
+
+.page-1 svg {
+  height: 500px;
+}
+
+.page-2 {
+  flex-grow: 0;
+  width: 0;
+  height: 0;
+  position: relative;
+  overflow: hidden;
+  transition: all .4s ease-in;
+  transform: scale(0);
+}
+
+.page-visible {
+  width: calc(50% - 2rem);
+  height: auto;
+  transform: scale(1);
+  overflow: visible;
+}
+
+.date-picker {
+  height: 12rem;
+  font-size: 4rem;
+  font-weight: 600;
+  width: 100px;
+  text-align: center;
+  border-radius: 2rem;
+  padding: 2rem;
+}
+
+foreignObject {
+  overflow: visible;
+}
+
+.star-chart {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: .2;
+  z-index: -1;
+}
+
+/* #zodiacName {
+  font-size: 6rem;
+  margin-bottom: 4rem;
+  text-transform: lowercase;
+  text-align: center;
+}
+
+#zodiacName:first-letter {
+  text-transform: uppercase;
+} */
+
+.zodiac-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+  width: 100%;
+}
+
+.arrow-keys {
+  font-size: 16rem;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity .4s ease;
+  outline: none;
+  background: transparent;
+}
+
+.arrow-keys:hover {
+  opacity: 1;
+}
+
+.arrow-keys::selection {
+  background-color: transparent;
+}
+
+#zodiac-container {
+  width: 100%;
+  height: 300px;
+  position: relative;
+}
+
+.zodiac svg {
+  height: 300px;
+}
+
+.twitter-link {
+  margin-top: 10px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .page-1 svg {
+    height: auto;
+    width: 100%;
+  }
+
+  .zodiac-carousel {
+    gap: 2rem;
+  }
+
+  .arrow-keys {
+    font-size: 8rem;
+  }
+
+  #zodiac-container {
+    height: auto;
+    width: 100%;
+  }
+
+  .zodiac svg {
+    height: auto;
+    width: 100%;
+  }
+}
+
+/* Star appearance */
+.star {
+  opacity: 0;
+  transition: opacity 0.1s ease-in;
+  fill: #000000; /* Ensure stars are white */
+}
+
+.star.visible {
+  opacity: 1;
+}
+
+/* Connection path appearance */
+.connection-path {
+  stroke-dasharray: 1000; /* Adjust if needed for very long paths */
+  stroke-dashoffset: 1000;
+  transition: stroke-dashoffset 0.3s linear;
+  stroke: #000000; /* Ensure paths are white */
+  stroke-width: 2; /* Consistent stroke width */
+  fill: none; /* Ensure paths aren't filled */
+}
+
+.connection-path.visible {
+  stroke-dashoffset: 0;
+}
+
+/* Background stars */
+.background-star {
+  opacity: 0.4; /* Slightly dimmer */
+  fill: #000000; /* Ensure background stars are white */
+}
+
 .horoscopeDataContainer {
   display: none;
 }
@@ -21,19 +248,21 @@
   font-size: 20px;
   font-family: Helvetica, sans-serif;
   box-sizing: border-box;
+  display: none;
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+
+.slide-visible {
+  display: initial;
+  opacity: 1;
 }
 
 .slide-wrap {
   position: relative;
-  height: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
-}
-
-.signimage {
-  width: 20vh;
-  height: 20vh;
-  border-width: 4px;
 }
 
 .flex-container {
@@ -59,13 +288,7 @@ span.datetoday {
   padding-top: 0%;
   padding-left: 1.5vw;
   font-size: 20px;
-  font-family: "Helvetica Neue", Roboto, "Segoe UI", Calibri, sans-serif;
-}
-
-/* Horoscope */
-.horoscope {
-  width: 100%;
-  height: 45vh;
+  font-family: "Pridi", serif;
 }
 
 .horoscopeHeading {
@@ -74,7 +297,7 @@ span.datetoday {
   font-size: 25px;
 }
 
-.horoscopeHeading span{
+.horoscopeHeading span {
   text-align: right;
   float: right;
 }
@@ -90,10 +313,10 @@ span.datetoday {
 }
 
 /* WebsiteName Header */
-.websiteName>h {
+.websiteName > h {
   height: 15vh;
   font-size: 12vmin;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: black;
   text-decoration: none;
 }
@@ -109,15 +332,14 @@ span.datetoday {
   margin: 0px;
 }
 
-.constellation p
-{
+.constellation p {
   margin: 2px;
 }
 
 /* Question-Answer */
 .questions {
   padding: 1vw;
-  font-family: 'Tahoma', sans-serif;
+  font-family: "Tahoma", sans-serif;
   font-size: 1.2rem;
   font-weight: bold;
   text-align: left;
@@ -125,14 +347,14 @@ span.datetoday {
 
 .answers {
   padding: 1vw;
-  font-family: 'Verdana', sans-serif;
-  font-size: 1.0rem;
+  font-family: "Verdana", sans-serif;
+  font-size: 1rem;
   text-align: left;
 }
 
 @media (max-width: 768px) {
   .questions {
-    font-size: 1.0rem;
+    font-size: 1rem;
   }
 
   .answers {
@@ -140,282 +362,249 @@ span.datetoday {
   }
 }
 
-
-
-.twitterContainer
-{
+.twitterContainer {
   height: 400px;
   overflow-x: scroll;
 }
 
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
-
 body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    max-width: 100vw;
-    overflow-x: hidden;
-    overflow-y: auto;
-    background-color: #ffffff;
-    text-align: center;
-    padding: 10px;
-    height: 100vh;
+  min-height: 100vh;
 }
-header {
-    padding: 15px 0;
-    font-size: 9vw;
-    font-weight: 400;
-    font-family: 'Times New Roman', Times, serif;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    text-align: center;
-    color: #2d2d2d;
-    background: #ffffff;
-    border-bottom: 1px solid #eee;
-    line-height: 1.2;
-}
-.content-container {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    flex: 1;
-    gap: 10px;
-    padding: 5px 0;
-    min-height: auto;
-}
+
 
 .ad-space {
-    flex: 1;
-    height: 100%;
-    max-width: 200px;
-    min-width: 8%;
-    background: #f0f0f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    color: #666;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
+  flex: 1;
+  height: 100%;
+  max-width: 200px;
+  min-width: 8%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #666;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
 }
-main {
-    flex: 2;
-    /* display: flex; */
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    font-size: 28px;
-    background: white;
-    width: 80%;
-    max-width: 800px;
-    min-height: 250px;
-    border-radius: 10px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+
+.horoscope-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-size: 28px;
+  background: transparent;
+  width: 100%;
+  position: relative;
 }
+
+.back-button {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 5rem;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity .4s ease;
+  outline: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.back-button:hover {
+  opacity: 1;
+}
+
+.back-button::selection {
+  background-color: transparent;
+}
+
 .horoscope-bar {
-    display: flex;
-    overflow-x: hidden;
-    overflow-y: hidden;
-    width: 100%;
-    padding: 10px 10px 20px;
-    background: white;
-    gap: 10px;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
+  display: flex;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  width: 100%;
+  padding: 10px 10px 20px;
+  background: white;
+  gap: 10px;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
 }
 .horoscope-bar button {
-    padding: 15px;
-    border: none;
-    background: white;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
+  padding: 15px;
+  border: none;
+  background: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
 }
 
-.signimage {
-    width: 18vh; /* Slightly reduce size for balance */
-    height: calc(18vh - 6px); /* Adjust height proportionally */
-    border-width: 3px; /* Reduce border width */
-    border-radius: 10px; /* Add rounded corners for a modern look */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Add hover effect */
-}
-
-.signimage:hover {
-    transform: scale(1.1); /* Slightly enlarge on hover */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhance shadow on hover */
-}
-
-        .slider {
-            display: flex;
-            overflow-x: hidden;
-            overflow-y: hidden;
-            box-sizing: border-box;
-            height: 100%;
-            -webkit-overflow-scrolling: touch;
-        }
-
-
-            .slide {
-width: 100%;
-flex-shrink: 0;
-padding: 2vw;
-font-size: 20px;
-font-family: Helvetica, sans-serif;
-box-sizing: border-box;
-}
-
-.slide-wrap {
-position: relative;
-height: 100%;
-display: flex;
-align-items: center;
+.slider {
+  display: flex;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  box-sizing: border-box;
+  height: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 span.datetoday {
-font-size: 20px;
-float:right
+  font-size: 20px;
+  float: right;
 }
 
 /* Disclaimer */
 .disclaimer {
-background-color: grey;
-color: azure;
-font-size: 1vh;
-padding: 10px;
-margin: 0 auto;
-width: 95%;
-box-sizing: border-box;
+  background-color: grey;
+  color: azure;
+  font-size: 1vh;
+  padding: 10px;
+  margin: 0 auto;
+  width: 95%;
+  box-sizing: border-box;
 }
 
 .horoscopeHeading {
-float: top;
-text-align: left;
-font-size: 2vh;
+  float: top;
+  text-align: left;
+  font-size: 4rem;
 }
 
 .horoscopeHeading .datetoday {
-font-size: 2vh;
+  font-size: 4rem;
 }
 
 .horoscopetoday {
-align-content: center;
-height: 100%;
-overflow: hidden;
-padding: 10px;
-text-align: center;
-flex: 1;
-width: 100%;
+  align-content: center;
+  height: 100%;
+  overflow: hidden;
+  padding: 10px;
+  text-align: center;
+  flex: 1;
+  width: 100%;
 }
 
 /* Pop-Up Style */
 .popup {
-background-color: #000000;
-width: 50vw;
-padding: 10px 15px;
-position: absolute;
-transform: translate(-50%, -50%);
-left: 50%;
-top: 50%;
-border-radius: 8px;
-display: none;
-font-family: "Poppins", sans-serif;
-text-align: center;
-color: azure;
-z-index: 1000;
-font-size: 3vmin;
-height: fit-content
+  background-color: #000000;
+  width: 50vw;
+  padding: 10px 15px;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 50%;
+  border-radius: 8px;
+  display: none;
+  font-family: "Poppins", sans-serif;
+  text-align: center;
+  color: azure;
+  z-index: 1000;
+  font-size: 3vmin;
+  height: fit-content;
 }
 
 .popup h2 {
-margin-top: -20px;
+  margin-top: -20px;
 }
 
 .popup p {
-font-size: 3vmin;
-text-align: justify;
-margin: 20px 0;
+  font-size: 3vmin;
+  text-align: justify;
+  margin: 20px 0;
 }
 
 .popup a {
-color: cornsilk;
+  color: cornsilk;
 }
 
 .popup button {
-display: block;
-margin: 0 0 20px auto;
-background-color: transparent;
-font-size: 3vmin;
-text-align: center;
-color: #ffffff;
-background: #3e3e3e;
-border-radius: 100%;
-width: 4vmin;
-height: 4vmin;
-border: none;
-outline: none;
-cursor: pointer;
+  display: block;
+  margin: 0 0 20px auto;
+  background-color: transparent;
+  font-size: 3vmin;
+  text-align: center;
+  color: #ffffff;
+  background: #3e3e3e;
+  border-radius: 100%;
+  width: 4vmin;
+  height: 4vmin;
+  border: none;
+  outline: none;
+  cursor: pointer;
 }
 
-.twitterContainer
-{
-height: 400px;
-overflow-x: scroll;
+.twitterContainer {
+  height: 400px;
+  overflow-x: scroll;
 }
-
 
 @media (max-width: 768px) {
-    .content-container {
-        flex-direction: column;
-        gap: 5px;
-        padding: 0;
-    }
-    .ad-space {
-        width: 100%;
-        max-width: 100%;
-        height: 60px;
-        margin-bottom: 5px;
-    }
-    main {
-        width: 100%;
-        min-height: 300px;
-        padding: 10px;
-    }
-    .horoscope-bar {
-        overflow-x: hidden;
-    }
-    .horoscope-bar button {
-        padding: 8px;
-        font-size: 12px;
-    }
-    header {
-        padding: 10px 0;
-        font-size: 7vw;
-        letter-spacing: 0.5px;
-    }
-    body {
-        padding: 5px;
-        height: auto;
-        min-height: 100vh;
-    }
-    .disclaimer {
-        font-size: 1vh;
-        padding: 8px;
-    }
-    .slide-wrap {
-        height: 40vh;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+  .ad-space {
+    width: 100%;
+    max-width: 100%;
+    height: 60px;
+    margin-bottom: 5px;
   }
+  .horoscope-display {
+    width: 100%;
+    /* padding: 24px 20px; */
+  }
+  .horoscope-bar {
+    overflow-x: hidden;
+  }
+  .horoscope-bar button {
+    padding: 8px;
+    font-size: 12px;
+  }
+  header {
+    padding: 10px 0;
+    font-size: 7vw;
+    letter-spacing: 0.5px;
+  }
+  body {
+    padding: 10px;
+  }
+  .disclaimer {
+    font-size: 1vh;
+    padding: 8px;
+  }
+  .slide-wrap {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .page-container {
+    flex-direction: column;
+    padding: 0;
+    height: auto;
+    justify-content: space-between;
+    overflow: auto;
+    margin-top: 3rem;
+  }
+  .page-1 {
+    width: 100%;
+  }
+  .page-visible {
+    width: 100%;
+  }
+  .star-chart {
+    display: none;
+  }
+  .horoscope-display {
+    padding: 0;
+  }
+  .popup {
+    width: 80vw;
+  }
+  .horoscopetoday {
+    height: auto;
+  }
+  .horoscopetoday p {
+    text-align: center;
+  }
+}
