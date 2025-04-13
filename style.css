@@ -2,12 +2,42 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Roboto", sans-serif;
+  font-family: "Pridi", serif;
   font-size: 4px;
+}
+
+.underdog-regular {
+  font-family: "Pridi", serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 div, p, span, ul, li, label, select, option, a {
   font-size: 4rem;
+}
+
+h1 {
+  font-size: calc(2rem * 4);
+}
+
+h2 {
+  font-size: calc(1.5rem * 4);
+}
+
+h3 {
+  font-size: calc(1.17rem * 4);
+}
+
+h4 {
+  font-size: calc(1rem * 4);
+}
+
+h5 {
+  font-size: calc(0.83rem * 4);
+}
+
+h6 {
+  font-size: calc(0.67rem * 4);
 }
 
 header {
@@ -40,6 +70,11 @@ header {
 
 .page-visible {
   display: block;
+}
+
+.horoscope-display-image svg {
+  width: 500px;
+  height: 500px;
 }
 
 .date-picker {
@@ -230,7 +265,7 @@ span.datetoday {
   padding-top: 0%;
   padding-left: 1.5vw;
   font-size: 20px;
-  font-family: "Helvetica Neue", Roboto, "Segoe UI", Calibri, sans-serif;
+  font-family: "Pridi", serif;
 }
 
 /* Horoscope */
@@ -380,6 +415,11 @@ main {
   transition: opacity .4s ease;
   outline: none;
   background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: 500;
 }
 
 .back-button:hover {
@@ -553,7 +593,7 @@ span.datetoday {
   }
   main {
     width: 100%;
-    padding: 10px;
+    padding: 24px 20px;
   }
   .horoscope-bar {
     overflow-x: hidden;
