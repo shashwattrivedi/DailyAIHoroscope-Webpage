@@ -124,6 +124,13 @@ function animateConstellation(zodiacId) {
 function showZodiac(index) {
   const currentZodiacId = zodiacs[currentIndex];
   const newZodiacId = zodiacs[index];
+  document
+    .getElementsByClassName("slide-visible")?.[0]
+    ?.classList.remove("slide-visible");
+
+  document
+    .getElementById(newZodiacId + "-slide")
+    .classList.add("slide-visible");
 
   const currentZodiacDiv = document.getElementById(currentZodiacId);
   const newZodiacDiv = document.getElementById(newZodiacId);
@@ -139,11 +146,8 @@ function showZodiac(index) {
     console.warn("Could not find current zodiac div:", currentZodiacId);
   }
 
-  const zodiacName = document.getElementById("zodiacName");
-  zodiacName.innerText = newZodiacId;
-  const link = newZodiacId.charAt(0).toUpperCase() + newZodiacId.substring(1);
-  zodiacName.href = `#${link}`;
-  zodiacName.click();
+  const zodiacName = document.getElementsByClassName("center-text")[0];
+  zodiacName.innerHTML = newZodiacId.charAt(0).toUpperCase() + newZodiacId.substring(1);
 
   if (newZodiacDiv) {
     newZodiacDiv.style.display = "block";
@@ -158,38 +162,19 @@ function showZodiac(index) {
 // Event listeners for arrow clicks
 document.getElementById("left-arrow").addEventListener("click", () => {
   const newIndex = (currentIndex - 1 + zodiacs.length) % zodiacs.length;
-  showZodiac(newIndex);
+  changeZodiac([zodiacs[newIndex]]);
 });
 
 document.getElementById("right-arrow").addEventListener("click", () => {
   const newIndex = (currentIndex + 1) % zodiacs.length;
-  showZodiac(newIndex);
+  changeZodiac([zodiacs[newIndex]]);
 });
-
-const picker = datepicker('.date-picker', {
-  onSelect: instance => {
-    // Show which date was selected.
-    console.log(instance.dateSelected)
-    const selectedDate = new Date(instance.dateSelected);
-    let selectedIndex = -1;
-    for(let i = 0; i < zodiacs.length; i++) {
-      const startDate = new Date(Date.parse(`${zodiacDateRangesStructured[zodiacs[i]].start.month} ${zodiacDateRangesStructured[zodiacs[i]].start.day},${new Date().getFullYear()}`));
-      const endDate = new Date(Date.parse(`${zodiacDateRangesStructured[zodiacs[i]].end.month} ${zodiacDateRangesStructured[zodiacs[i]].end.day},${new Date().getFullYear()}`));
-      if (selectedDate.getTime() >= startDate && selectedDate.getTime() <= endDate) {
-        selectedIndex = i;
-        break;
-      }
-    }
-    showZodiac(selectedIndex);
-  },
-  position: 'br'
-});
-picker.calendarContainer.style.setProperty('width', '240px');
 
 goToSelectedZodiac = (zodiac_name) => {
   document.getElementsByClassName("page-1")[0].classList.remove("page-visible");
   document.getElementsByClassName("page-2")[0].classList.add("page-visible");
-  const selectedIndex = zodiacs.findIndex((x) => x === zodiac_name);
+
+  const selectedIndex = zodiacs.findIndex((x) => x === zodiac_name.toLowerCase());
   setTimeout(() => {
     showZodiac(selectedIndex);
   }, 100);
@@ -199,40 +184,51 @@ goBackToHome = () => {
   document.getElementsByClassName("page-2")[0].classList.remove("page-visible");
   document.getElementsByClassName("page-1")[0].classList.add("page-visible");
 
-  const noHashURL = window.location.href.replace(/#.*$/, "");
-  window.history.replaceState("", document.title, noHashURL);
+  const zodiacName = document.getElementsByClassName("center-text")[0];
+  zodiacName.innerHTML = "Zodiac";
+
+  history.replaceState(null, '', window.location.pathname);
 };
 
 document.addEventListener("DOMContentLoaded", () => {
   Array.from(document.getElementsByClassName("zodiac-sector")).forEach(
     (element) => {
       element.addEventListener("click", (event) => {
-        goToSelectedZodiac(element.getAttribute("data-zodiac"));
+        changeZodiac(element.getAttribute("data-zodiac"));
       });
     }
   );
 
-  window.addEventListener(
-    "hashchange",
-    () => {
-      checkLocationHash();
-    },
-    false
-  );
+  window.addEventListener("popstate", () => {
+    checkLocationParam();
+  }, false);
 
-  checkLocationHash();
+  checkLocationParam();
 });
 
-document.getElementById("back-button").addEventListener("click", () => {
-  goBackToHome();
-});
+// document.getElementById("back-button").addEventListener("click", () => {
+//   goBackToHome();
+// });
 
-checkLocationHash = () => {
-  const hash = location.hash.toLowerCase();
-  console.log(hash);
-  if (hash.length) {
-    goToSelectedZodiac(hash.substring(1));
+changeZodiac = (newZodiacId) => {
+  const newParams = new URLSearchParams(window.location.search);
+  newParams.set("selectedZodiac", newZodiacId);
+
+  const newUrl = `${window.location.pathname}?${newParams.toString()}`;
+  history.pushState({}, "", newUrl);
+  checkLocationParam();
+}
+
+checkLocationParam = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const selectedZodiac = urlParams.get('selectedZodiac') || "";
+  if (selectedZodiac.length) {
+    goToSelectedZodiac(selectedZodiac);
   } else {
     goBackToHome();
   }
 };
+
+document.getElementById("website-header").addEventListener("click", () => {
+  goBackToHome();
+});
