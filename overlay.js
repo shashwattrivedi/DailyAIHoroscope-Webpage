@@ -6,15 +6,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const starChart = document.querySelector('.star-chart');
     const zodiacContainer = document.getElementById('zodiac-container');
     const isMobile = window.innerWidth <= 768;
-    
-    if (starChart && pageContainer) {
-      // For mobile, fill the entire viewport
+      if (starChart && pageContainer) {
+      // For mobile, center as background
       if (isMobile) {
-        starChart.style.width = '100vw';
-        starChart.style.height = '100vh';
+        // CSS handles the positioning, just adjust size and opacity
+        starChart.style.width = '80vw';
+        starChart.style.height = '80vh';
         starChart.style.position = 'fixed';
-        starChart.style.top = '0';
-        starChart.style.left = '0';        // Set star transparency for mobile
+        starChart.style.top = '50%';
+        starChart.style.left = '50%';
+        starChart.style.transform = 'translate(-50%, -50%)';
+        
+        // Set star transparency for mobile
         document.querySelectorAll('.background-star').forEach(star => {
           star.style.opacity = '0.1'; // Adjust background star transparency for mobile (0.0-1.0)
         });
@@ -35,10 +38,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set overall star chart transparency for mobile
         starChart.style.opacity = '0.1'; // Adjust overall star chart transparency (0.0-1.0)
       } else {
-        // For desktop, fit within the container
-        starChart.style.width = pageContainer.offsetWidth + 'px';
-        starChart.style.height = pageContainer.offsetHeight + 'px';
+        // For desktop, center with padding
+        starChart.style.width = `calc(100% - 120px)`;
+        starChart.style.height = `calc(100% - 120px)`;
         starChart.style.position = 'absolute';
+        starChart.style.top = '60px';
+        starChart.style.left = '60px';
+        starChart.style.transform = 'none';
         
         // Set star transparency for desktop
         document.querySelectorAll('.background-star').forEach(star => {
@@ -62,21 +68,26 @@ document.addEventListener('DOMContentLoaded', function() {
         starChart.style.opacity = '0.1'; // Adjust overall star chart transparency (0.0-1.0)
       }
     }
-    
-    // Center the stars in the viewport with adjustments for mobile
+      // Center the stars in the viewport with adjustments for mobile
     if (zodiacContainer) {
       zodiacContainer.style.width = '100%';
       zodiacContainer.style.height = '100%';
+      zodiacContainer.style.overflow = 'hidden'; // Ensure container clips content
       
-      // Scale the zodiac elements based on screen size
+      // Scale the zodiac elements based on screen size and ensure they fit within container
       const zodiacs = document.querySelectorAll('.zodiac svg');
       zodiacs.forEach(zodiac => {
+        zodiac.style.overflow = 'hidden'; // Clip SVG content
         if (isMobile) {
-          zodiac.style.maxWidth = '100vw';
-          zodiac.style.maxHeight = '100vh';
+          zodiac.style.maxWidth = '80vw';
+          zodiac.style.maxHeight = '80vh';
+          zodiac.style.width = '100%';
+          zodiac.style.height = '100%';
         } else {
-          zodiac.style.maxWidth = '2000px';
-          zodiac.style.maxHeight = 'none';
+          zodiac.style.maxWidth = 'calc(100% - 120px)';
+          zodiac.style.maxHeight = 'calc(100% - 120px)';
+          zodiac.style.width = '100%';
+          zodiac.style.height = '100%';
         }
       });
     }
