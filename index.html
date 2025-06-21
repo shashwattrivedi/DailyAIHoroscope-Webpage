@@ -39,46 +39,6 @@
     <header id="website-header">Daily AI Horoscope</header>    <div class="page-container">
       <div class="star-chart">
         <div id="zodiac-container">
-            <div class="zodiac" id="aries">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000">
-                <g id="connections" transform="translate(150, 50)">
-                  <path
-                    id="path1"
-                    class="connection-path"
-                    d="M411,136 L845,295"
-                  />
-                  <path
-                    id="path2"
-                    class="connection-path"
-                    d="M845,295 L965,380"
-                  />
-                  <path
-                    id="path3"
-                    class="connection-path"
-                    d="M965,380 L996,476"
-                  />
-                </g>
-                <g id="stars" transform="translate(150, 50)">
-                  <circle id="star1" class="star" cx="411" cy="136" r="12" />
-                  <circle id="star2" class="star" cx="845" cy="295" r="22" />
-                  <circle id="star3" class="star" cx="965" cy="380" r="24" />
-                  <circle id="star4" class="star" cx="996" cy="476" r="14" />
-                  <circle class="background-star" cx="85" cy="388" r="8" />
-                  <circle class="background-star" cx="150" cy="400" r="8" />
-                  <circle class="background-star" cx="313" cy="388" r="8" />
-                  <circle class="background-star" cx="523" cy="388" r="8" />
-                  <circle class="background-star" cx="790" cy="388" r="8" />
-                  <circle class="background-star" cx="180" cy="465" r="8" />
-                  <circle class="background-star" cx="343" cy="456" r="8" />
-                  <circle class="background-star" cx="486" cy="456" r="8" />
-                  <circle class="background-star" cx="740" cy="456" r="8" />
-                  <circle class="background-star" cx="230" cy="535" r="8" />
-                  <circle class="background-star" cx="343" cy="535" r="8" />
-                  <circle class="background-star" cx="413" cy="570" r="8" />
-                  <circle class="background-star" cx="343" cy="677" r="8" />
-                </g>
-              </svg>
-            </div>
             <!-- Other zodiac SVGs will go here -->
         </div>
       </div>
@@ -448,8 +408,33 @@
             <div class="material-icons arrow-keys" id="right-arrow">
               chevron_right
             </div>
-          </div>        </main>
-        <!-- Star chart moved to the page container to be overlaid with content -->
+          </div>
+        </main>
+
+            <div class="zodiac" id="aries" style="display: none">
+              <svg baseProfile="tiny" version="1.2" viewBox="0 0 1200 1000">
+                <g id="connections" transform="translate(150, 50)">
+                  <path
+                    id="path1"
+                    class="connection-path"
+                    d="M411,136 L845,295"
+                  />
+                  <path
+                    id="path2"
+                    class="connection-path"
+                    d="M845,295 L965,380"
+                  />
+                  <path
+                    id="path3"
+                    class="connection-path"
+                    d="M965,380 L996,476"
+                  />
+                </g>
+                <g id="stars" transform="translate(150, 50)">
+                  <circle id="star1" class="star" cx="411" cy="136" r="12" />
+                  <circle id="star2" class="star" cx="845" cy="295" r="22" />
+                  <circle id="star3" class="star" cx="965" cy="380" r="24" />
+                  <circle id="star4" class="star" cx="996" cy="476" r="14" />
                   <circle class="background-star" cx="85" cy="388" r="8" />
                   <circle class="background-star" cx="150" cy="400" r="8" />
                   <circle class="background-star" cx="313" cy="388" r="8" />
@@ -466,7 +451,7 @@
                 </g>
               </svg>
             </div>
-  
+
             <div class="zodiac" id="taurus" style="display: none">
               <svg baseProfile="tiny" version="1.2" viewBox="44 41 1250 1238">
                 <g id="connections">
@@ -1486,11 +1471,6 @@
                 viewBox="9 185 1225 726"
                 xmlns:bx="https://boxy-svg.com"
               >
-                <defs>
-                  <bx:export>
-                    <bx:file format="svg" />
-                  </bx:export>
-                </defs>
                 <g id="connections">
                   <path
                     class="connection-path"
