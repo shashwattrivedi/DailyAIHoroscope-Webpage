@@ -58,9 +58,9 @@ header {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  gap: 2rem;
+  /* gap: 2rem; */
   padding: 0 1rem;
-  width: 90%; /* Fixed at 90% as requested */
+  width: 100%; 
   transition: all .4s ease-in;
   height: calc(100vh - 120px);
   max-width: 1800px; /* Add a max-width for very large screens */
@@ -372,7 +372,7 @@ span.datetoday {
   font-size: large;
 }
 .horoscopetoday p {
-  font-size: 9rem; /* Base size that scales with root font size */
+  font-size: 8rem; /* Base size that scales with root font size */
   line-height: 1.6;
   margin-bottom: 1rem;
   font-family: "Pridi", serif;
@@ -706,10 +706,13 @@ span.datetoday {
     .horoscopeHeading .datetoday {
     font-size: 4.5rem;
   }
-  
-  .horoscopetoday {
+    .horoscopetoday {
     font-size: 5rem;
     padding: 20px;
+  }
+  
+  .horoscopetoday p {
+    font-size: 5rem;
   }
 }
 
@@ -821,22 +824,9 @@ span.datetoday {
     color: #000; /* Ensure dark text */
     text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.9); /* Enhanced text shadow for mobile readability */
   }
-    .horoscopeHeading {
-    font-size: 4.5rem; /* Larger font */
-    padding: 12px;
-    background-color: transparent; /* Made transparent for star visibility */
-    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.9); /* Enhanced text shadow for mobile readability */
-  }
-  
-  .horoscopeHeading .datetoday {
-    font-size: 4rem; /* Increased size */
-  }
-  
-  div, p, span, ul, li, label, select, option, a {
-    font-size: 3rem;
-  }
   
   .horoscopetoday p {
+    font-size: 6rem;
     text-align: center;
   }
   
@@ -862,11 +852,14 @@ span.datetoday {
   
   div, p, span, ul, li, label, select, option, a {
     font-size: 2.5rem;
-  }
-    .horoscopetoday {
+  }    .horoscopetoday {
     font-size: 3.5rem;
     padding: 12px;
     margin-top: 8px;
+  }
+  
+  .horoscopetoday p {
+    font-size: 6rem;
   }
     .horoscopeHeading {
     font-size: 3rem;
