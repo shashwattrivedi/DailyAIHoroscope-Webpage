@@ -156,45 +156,42 @@ document.addEventListener('DOMContentLoaded', function() {
     const horoscopeHeadings = document.querySelectorAll('.horoscopeHeading');
     const isMobile = window.innerWidth <= 768;
     const isSmallMobile = window.innerWidth <= 480;
-    
-    horoscopeTexts.forEach(text => {
-      if (isSmallMobile) {
+      horoscopeTexts.forEach(text => {      if (isSmallMobile) {
         // For very small screens
         text.style.maxHeight = '65vh';
         text.style.overflowY = 'auto';
         text.style.padding = '15px';
-        text.style.fontSize = '3.2rem';
-        text.style.backgroundColor = 'rgba(255, 255, 255, 0.98)';
+        text.style.fontSize = '4rem';
+        // Removed background color to keep transparency
       } else if (isMobile) {
         // For mobile screens
         text.style.maxHeight = '70vh';
         text.style.overflowY = 'auto';
         text.style.padding = '20px';
-        text.style.fontSize = '4rem';
-        text.style.backgroundColor = 'rgba(255, 255, 255, 0.97)';
+        text.style.fontSize = '5rem';
+        // Removed background color to keep transparency
       } else {
         // For desktop
         text.style.maxHeight = '75vh';
         text.style.overflowY = 'auto';
-        text.style.padding = '40px';
-        text.style.fontSize = '5.5rem';
-        text.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+        text.style.padding = '1px';
+        text.style.fontSize = '7rem';
+        // Removed background color to keep transparency
       }
       
       // Ensure text is always readable
       text.style.color = '#000';
-      text.style.textShadow = '0 0 2px rgba(255, 255, 255, 0.5)';
+      text.style.textShadow = '2px 2px 4px rgba(255, 255, 255, 0.8)';
     });
-    
-    horoscopeHeadings.forEach(heading => {
+      horoscopeHeadings.forEach(heading => {
       if (isSmallMobile) {
-        heading.style.fontSize = '2.5rem';
+        heading.style.fontSize = '3rem';
         heading.style.padding = '6px';
       } else if (isMobile) {
-        heading.style.fontSize = '3rem';
+        heading.style.fontSize = '3.5rem';
         heading.style.padding = '8px';
       } else {
-        heading.style.fontSize = '4rem';
+        heading.style.fontSize = '5rem';
         heading.style.padding = '10px';
       }
     });
