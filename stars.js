@@ -159,16 +159,7 @@ function showZodiac(index) {
   currentIndex = index;
 }
 
-// Event listeners for arrow clicks
-document.getElementById("left-arrow").addEventListener("click", () => {
-  const newIndex = (currentIndex - 1 + zodiacs.length) % zodiacs.length;
-  changeZodiac([zodiacs[newIndex]]);
-});
-
-document.getElementById("right-arrow").addEventListener("click", () => {
-  const newIndex = (currentIndex + 1) % zodiacs.length;
-  changeZodiac([zodiacs[newIndex]]);
-});
+// Arrow navigation removed - carousel now uses only zodiac wheel clicks
 
 goToSelectedZodiac = (zodiac_name) => {
   document.getElementsByClassName("page-1")[0].classList.remove("page-visible");

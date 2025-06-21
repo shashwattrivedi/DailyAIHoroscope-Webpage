@@ -55,7 +55,8 @@ header {
 
 .page-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
   gap: 2rem;
   padding: 0 1rem;
@@ -73,18 +74,20 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-grow: 1;
-  width: calc(55% - 1rem);
+  flex-grow: 0;
+  width: 100%;
   position: relative;
   z-index: 3;
+  order: 2; /* Position at bottom */
+  margin-top: auto; /* Push to bottom */
 }
 
 .page-1 svg {
-  height: 800px;
-  width: 800px;
+  height: 500px;
+  width: 500px;
   margin: 0 auto; /* Center the SVG horizontally */
   max-width: 100%; /* Ensure SVG is responsive */
-  max-height: 80vh; /* Limit height on very tall screens */
+  max-height: 60vh; /* Limit height on very tall screens */
 }
 
 .page-2 {
@@ -97,12 +100,13 @@ header {
   transform: scale(0);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   z-index: 3;
+  order: 1; /* Position at top */
 }
 
 .page-visible {
-  width: calc(55% - 1rem);
+  width: 100%;
   height: auto;
   transform: scale(1);
   overflow: visible;
@@ -668,7 +672,8 @@ span.datetoday {
 /* Tablet devices */
 @media (max-width: 1024px) {
   .page-container {
-    flex-direction: row;
+    flex-direction: column;
+    justify-content: space-between;
     padding: 0 1rem;
     height: auto;
     margin-top: 2rem;
@@ -678,9 +683,17 @@ span.datetoday {
     width: 90%;
   }
   
-  .page-1 svg {
-    height: 600px;
-    width: 600px;
+  .page-1 {
+    order: 2; /* Keep zodiac at bottom */
+    margin-top: auto;
+  }
+  
+  .page-2 {
+    order: 1; /* Keep horoscope at top */
+  }
+    .page-1 svg {
+    height: 400px;
+    width: 400px;
     max-width: 100%;
   }
     div, p, span, ul, li, label, select, option, a {
@@ -747,9 +760,8 @@ span.datetoday {
     align-items: center;
     justify-content: center;
   }
-  
-  .page-container {
-    flex-direction: row;
+    .page-container {
+    flex-direction: column;
     padding: 0;
     height: auto;
     justify-content: space-between;
@@ -763,13 +775,17 @@ span.datetoday {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 1rem;
+    order: 2; /* Keep zodiac at bottom on mobile */
+    margin-top: auto;
   }
   
-  .page-1 svg {
-    height: 380px;
+  .page-2 {
+    order: 1; /* Keep horoscope at top on mobile */
+  }
+    .page-1 svg {
+    height: 280px;
     width: 100%;
-    max-width: 380px;
+    max-width: 280px;
   }
   
   .page-visible {
@@ -834,9 +850,9 @@ span.datetoday {
 /* Small mobile devices */
 @media (max-width: 480px) {
   .page-1 svg {
-    height: 320px;
+    height: 240px;
     width: 100%;
-    max-width: 320px;
+    max-width: 240px;
   }
   
   .page-container {
