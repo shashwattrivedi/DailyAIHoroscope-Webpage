@@ -51,6 +51,21 @@ header {
   background: #ffffff;
   border-bottom: 1px solid #eee;
   line-height: 1.2;
+  flex-shrink: 0; /* Prevent header from shrinking */
+}
+
+header a {
+  color: inherit;
+  text-decoration: none;
+  font-size: inherit;
+  font-weight: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+}
+
+header a:hover {
+  color: inherit;
+  text-decoration: none;
 }
 
 .page-container {
@@ -58,16 +73,23 @@ header {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  /* gap: 2rem; */
+  gap: 2rem;
   padding: 0 1rem;
   width: 100%; 
   transition: all .4s ease-in;
-  height: calc(100vh - 120px);
+  flex: 1; /* Take up remaining space between header and twitter-link */
   max-width: 1800px; /* Add a max-width for very large screens */
   min-height: 500px; /* Ensure minimum height */
   margin: 0 auto;
   position: relative;
   overflow: visible; /* Allow star animation to overflow if needed */
+}
+
+/* Main content wrapper for full-height layout */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .page-1 {
@@ -91,12 +113,12 @@ header {
 }
 
 .page-2 {
-  flex-grow: 1;
+  /* flex-grow: 0; */
   width: 0;
   height: 0;
   position: relative;
-  overflow: hidden;
-  transition: all .4s ease-in;
+  /* overflow: hidden; */
+  /* transition: all .4s ease-in; */
   transform: scale(0);
   display: flex;
   justify-content: center;
@@ -107,9 +129,9 @@ header {
 
 .page-visible {
   width: 100%;
-  height: auto;
+  height: 40vh;
   transform: scale(1);
-  overflow: visible;
+  /* overflow: visible; */
 }
 
 .date-picker {
@@ -162,9 +184,9 @@ foreignObject {
 
 .zodiac-carousel {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4rem;
+  /* align-items: center; */
+  /* justify-content: center; */
+  /* gap: 1rem; */
   width: 100%;
   margin: 0 auto;
 }
@@ -223,8 +245,33 @@ foreignObject {
 }
 
 .twitter-link {
-  margin-top: 10px;
+  margin-top: auto; /* Push to bottom */
   text-align: center;
+  flex-shrink: 0; /* Prevent twitter-link from shrinking */
+  padding: 2px 0; /* Add some padding for better spacing */
+  background: #ffffff; /* Match header background */
+  border-top: 1px solid #eee; /* Add subtle border like header */
+}
+
+/* Twitter Widget Container */
+.twitter-widget-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.twitter-widget-container h3 {
+  color: #1da1f2;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+/* Twitter timeline responsive styling */
+.twitter-timeline {
+  border-radius: 8px !important;
 }
 
 @media (max-width: 768px) {
@@ -248,7 +295,9 @@ foreignObject {
 
   .zodiac svg {
     height: auto;
+    top: 50%;
     width: 100%;
+    transform: scale(0.8) translate(-60%, -60%); /* Scale down and adjust position */
   }
 }
 
@@ -444,13 +493,12 @@ h {
   }
 }
 
-.twitterContainer {
-  height: 400px;
-  overflow-x: scroll;
-}
-
 body {
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 
@@ -472,17 +520,18 @@ body {
 .horoscope-display {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 30px;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0;
   font-size: 32px;
   background: transparent;
   width: 100%;
   position: relative;
   max-width: 100%;
-  margin: 0 auto;
+  margin: 0;
   z-index: 5;
-  height: auto;
-  min-height: 50vh; /* Increase minimum height */
+  height: 100%;
+  /* min-height: 50vh;  */
 }
 
 .back-button {
@@ -549,9 +598,9 @@ span.datetoday {
   background-color: grey;
   color: azure;
   font-size: 1vh;
-  padding: 10px;
+  padding: 1px;
   margin: 0 auto;
-  width: 95%;
+  width: 99%;
   box-sizing: border-box;
 }
 
@@ -665,8 +714,79 @@ span.datetoday {
 }
 
 .twitterContainer {
-  height: 400px;
-  overflow-x: scroll;
+  margin: 20px 0;
+  border: 1px solid #e1e8ed;
+  border-radius: 8px;
+  background-color: #f7f9fa;
+  max-height: 600px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.twitterContainer:hover .tweet-list {
+  animation-play-state: paused;
+}
+
+.tweet-list {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  animation: scrollTweets 60s linear forwards;
+}
+
+.tweet-list .twitter-tweet {
+  margin: 0 !important;
+  border-radius: 8px;
+  min-height: 200px;
+  flex-shrink: 0;
+}
+
+@keyframes scrollTweets {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(calc(-100% + 600px));
+  }
+}
+
+/* Custom scrollbar styling for webkit browsers */
+.twitterContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.twitterContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.twitterContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.twitterContainer::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Scrollbar styling for webkit browsers */
+.twitterContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.twitterContainer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.twitterContainer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.twitterContainer::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 /* Tablet devices */
@@ -675,7 +795,6 @@ span.datetoday {
     flex-direction: column;
     justify-content: space-between;
     padding: 0 1rem;
-    height: auto;
     margin-top: 2rem;
   }
   
@@ -728,7 +847,7 @@ span.datetoday {
   .horoscope-display {
     width: 100%;
     padding: 15px;
-    min-height: 60vh; /* Increased height for mobile */
+    /* min-height: 60vh;  */
   }
   
   .horoscope-bar {
@@ -747,9 +866,11 @@ span.datetoday {
     font-size: 7vw;
     letter-spacing: 0.5px;
   }
-  
-  body {
-    padding: 10px;
+    body {
+    /* padding: 10px; */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
   
   .disclaimer {
@@ -762,11 +883,9 @@ span.datetoday {
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-    .page-container {
+  }    .page-container {
     flex-direction: column;
     padding: 0;
-    height: auto;
     justify-content: space-between;
     overflow: auto;
     margin-top: 1rem;
@@ -808,13 +927,28 @@ span.datetoday {
     z-index: 0;
     pointer-events: none;
   }
-  
   .horoscope-display {
     padding: 0;
   }
   
   .popup {
-    width: 90vw;  }    .horoscopetoday {
+    width: 90vw;
+  }
+    .twitter-link {
+    padding: 1px 0;
+    margin-top: auto;
+  }
+  
+  .twitter-widget-container {
+    padding: 10px;
+    margin: 0 10px;
+  }
+  
+  .twitter-widget-container h3 {
+    font-size: 3rem;
+  }
+  
+  .horoscopetoday {
     height: auto;
     min-height: 250px; /* Ensure good height on mobile */
     font-size: 5rem; /* Larger font size */

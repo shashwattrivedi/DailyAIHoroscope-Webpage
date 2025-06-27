@@ -3,13 +3,70 @@
 
 <head>
     <title>Daily AI Horoscope</title>
+      <!-- Roboto Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Pridi:wght@200;300;400;500;600;700&family=Underdog&display=swap"
+        rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css">
     <script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
     <link rel="stylesheet" href="style.css">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" >
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" >    <script>
+        // Load tweets dynamically before page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const tweetIdsElement = document.getElementById('tweetIds');
+            const tweetListElement = document.getElementById('tweetList');
+            
+            if (tweetIdsElement && tweetListElement) {
+                const tweetIds = tweetIdsElement.textContent.trim();
+                
+                if (tweetIds) {
+                    // Split comma-separated IDs and create tweet elements
+                    const ids = tweetIds.split(',').map(id => id.trim()).filter(id => id);
+                    
+                    // Create tweets only once (no duplication for infinite scroll)
+                    ids.forEach(function(tweetId) {
+                        // Create blockquote element for each tweet
+                        const blockquote = document.createElement('blockquote');
+                        blockquote.className = 'twitter-tweet';
+                        
+                        const link = document.createElement('a');
+                        link.href = `https://twitter.com/user/status/${tweetId}`;
+                        
+                        blockquote.appendChild(link);
+                        tweetListElement.appendChild(blockquote);
+                    });
+                    
+                    // Reinitialize Twitter widgets after adding elements
+                    if (window.twttr && window.twttr.widgets) {
+                        window.twttr.widgets.load(tweetListElement);
+                    }
+                    
+                    // Stop auto-scroll when user manually scrolls
+                    const twitterContainer = document.querySelector('.twitterContainer');
+                    let userScrolled = false;
+                    
+                    twitterContainer.addEventListener('scroll', function() {
+                        if (!userScrolled) {
+                            userScrolled = true;
+                            tweetListElement.style.animationPlayState = 'paused';
+                        }
+                    });
+                    
+                    // Also stop on mouse wheel
+                    twitterContainer.addEventListener('wheel', function() {
+                        userScrolled = true;
+                        tweetListElement.style.animationPlayState = 'paused';
+                    });
+                }
+            }
+        });
+    </script>
 </head>
 
 <body class="flex-container">
-    <header>Daily AI Horoscope</header>
+    <header id="website-header"><a href="index.html">Daily AI Horoscope</a></header>
     <br>
     <br>
     <div>
@@ -69,12 +126,22 @@
             <p>
                 If you find any connection between the horoscope and any event with you, please share the screenshot of
                 the horoscope with your story along with
-                #DailyAIHoroscopeWasCorrect on Twitter. Here are the stories on Twitter from others for yesterdays's
-                horoscope and past.
+                #DailyAIHoroscopeWasCorrect on Twitter <a href="https://twitter.com/intent/tweet?button_hashtag=DailyAIHoroscopeWasCorrect&ref_src=twsrc%5Etfw" class="twitter-hashtag-button" data-show-count="false">Tweet #DailyAIHoroscopeWasCorrect</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> . Here are the stories on Twitter from others for yesterdays's
+                horoscope and past.                  <a href="https://twitter.com/hashtag/DailyAIHoroscopeWasCorrect" 
+                   class="twitter-timeline" 
+                   data-chrome="noheader nofooter noborders transparent"
+                   data-tweet-limit="5"
+                   data-theme="light">
+                   #DailyAIHoroscopeWasCorrect Tweets
+                </a>
             </p>
-        </div>
+        </div>        <!-- Hidden div containing comma-separated tweet IDs -->
+        <div id="tweetIds" style="display: none;"></div>
+        
         <div class="twitterContainer">
-            [[Tweets]]
+            <div id="tweetList" class="tweet-list">
+                <!-- Tweets will be dynamically loaded here -->
+            </div>
         </div>
 
         <div class="questions">
@@ -82,16 +149,12 @@
         </div>
         <div class="answers">
             <p>
-                Those dots are the star constellations which are associated with the Astrological sign. When you click
-                on them, some connect to form figures of mythological creatures or animals or people
-                related to zodiac signs. There is no standard representation of any constellations. After clicking on
-                them, the figure you see is something that I found online, mainly on the IAU's website or
-                something that I liked or created. You can quickly draw a parallel between this and how horoscopes work.
-                One tries to connect stars to form a figure and match
-                with something that he wants to see. Similarly, horoscopes are vague, but people can still match them
-                with something they experience, even if that connection is paper-thin.
-                Most of you won't see Libra in the Libra constellation; want to share what you see, please read Want to
-                contribute?.
+                Those dots represent star constellations associated with each astrological sign. They connect to form figures of mythological creatures, animals, or people
+                related to zodiac signs. There is no standard representation of any constellation. The figures you see are ones I found online, mainly on the IAU's website, or
+                ones that I liked or created myself. You can easily draw a parallel between this and how horoscopes work.
+                Just as people try to connect stars to form a figure that matches something they want to see, horoscopes are similarly vague, yet people still match them
+                with their experiences, even when those connections are paper-thin.
+                Most of you won't actually see a Libra in the Libra constellation; if you want to share what you see, please read the "Want to contribute?" section.
             </p>
         </div>
 
