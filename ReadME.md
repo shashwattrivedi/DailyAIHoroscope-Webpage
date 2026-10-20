@@ -48,7 +48,7 @@ A Cloudflare Worker writes 12 lines per calendar date with Workers AI and stores
 - A date starts at 00:00 in UTC+14 (the first time zone) and ends at 24:00 in UTC-12, so everyone gets the lines for their own local date.
 - A cron runs hourly and only generates missing dates, up to 6 hours before they start. Lines wait in KV (private) until the date starts (10:00 UTC), then the cron copies them to the public R2 bucket `dailyaihoroscope-data` as `data/YYYY-MM-DD.json`.
 - Visitors load that file from the CDN, so the Worker isn't called at all. The page only falls back to the Worker API if the file is missing; if a date is missing everywhere, the first request generates it.
-- The file's address is the `horoscope-data` meta tag (the bucket's public domain). While it is empty, pages use the API.
+- The file's address is the `horoscope-data` meta tag: https://data.dailyaihoroscope.com (R2 custom domain, with a Cache Rule so the CDN caches it). While it is empty, pages use the API.
 - Each sign gets two random moods; the lines ignore the sign's traditional traits.
 - `GET /v1/horoscope?date=YYYY-MM-DD` returns `{ date, signs: { Aries: "...", ... } }`. Dates that have not started anywhere yet return 404.
 
