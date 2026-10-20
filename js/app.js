@@ -360,13 +360,14 @@
 
   function openSheet() {
     els.sheet.hidden = false;
-    $('closeSheet').focus();
+    // The sheet starts below the screen; a plain focus() would scroll the layout to it.
+    $('closeSheet').focus({ preventScroll: true });
   }
 
   function closeSheet() {
     if (els.sheet.hidden) return;
     els.sheet.hidden = true;
-    els.openSheet.focus();
+    els.openSheet.focus({ preventScroll: true });
   }
 
   // ---------- Motion: cursor, tilt, swipe ----------
