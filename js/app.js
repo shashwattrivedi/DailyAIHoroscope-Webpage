@@ -252,6 +252,7 @@
     els.chips.querySelectorAll('.chip').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
     els.tiles.querySelectorAll('.tile').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
     els.shareLabel.textContent = 'Felt the same? Share it';
+    prewarm();
   }
 
   function buildLists() {
@@ -391,19 +392,48 @@
     flash.t = setTimeout(() => { els.shareLabel.textContent = 'Felt the same? Share it'; }, 2400);
   }
 
+  // The card image is drawn ahead of time so sharing starts straight from the tap
+  // (Safari drops navigator.share if it waits too long after the gesture).
+  const cards = new Map();
+  function cardFor(sel, day) {
+    const k = sel + '-' + day;
+    if (!cards.has(k)) cards.set(k, drawCard(sel, day).then((blob) => (cards.get(k).blob = blob)));
+    return cards.get(k);
+  }
+  function cardFile(blob, sel) {
+    return new File([blob], 'daily-ai-horoscope-' + SIGNS[sel].key + '.png', { type: 'image/png' });
+  }
+  let prewarmT = 0;
+  function prewarm() {
+    clearTimeout(prewarmT);
+    prewarmT = setTimeout(() => cardFor(state.sel, state.day), 400);
+  }
+
+  function download(file) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(file);
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
   async function share() {
-    const s = SIGNS[state.sel];
-    const text = s.name + (state.day === 0 ? ' today' : ' yesterday') + ': “' + lineFor(state.sel, state.day) + '” #DailyAIHoroscopeWasCorrect';
-    if (navigator.share) {
-      try { await navigator.share({ title: 'Daily AI Horoscope', text, url: SITE }); } catch (e) {}
-      return;
+    const { sel, day } = state;
+    const text = SIGNS[sel].name + (day === 0 ? ' today' : ' yesterday') + ': “' + lineFor(sel, day) + '” #DailyAIHoroscopeWasCorrect';
+    const card = cardFor(sel, day);
+    const file = cardFile(card.blob || (await card), sel);
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'Daily AI Horoscope', text: text + ' ' + SITE }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    } else if (navigator.share) {
+      try { await navigator.share({ title: 'Daily AI Horoscope', text, url: SITE }); return; } catch (e) { if (e.name === 'AbortError') return; }
     }
-    try {
-      await navigator.clipboard.writeText(text + ' ' + SITE);
-      flash('Copied, paste it anywhere');
-    } catch (e) {
-      window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) + '&url=' + encodeURIComponent(SITE), '_blank', 'noopener');
-    }
+    // No share sheet: copy the text and save the image so both can be posted.
+    let copied = false;
+    try { await navigator.clipboard.writeText(text + ' ' + SITE); copied = true; } catch (e) {}
+    download(file);
+    flash(copied ? 'Text copied, image saved' : 'Image saved');
   }
 
   function wrap(ctx, text, maxW) {
@@ -418,8 +448,8 @@
   }
 
   // 1080x1350 card for stories and feeds.
-  async function drawCard() {
-    const s = SIGNS[state.sel], c = C[s.key];
+  async function drawCard(sel, day) {
+    const s = SIGNS[sel], c = C[s.key];
     const W = 1080, H = 1350, P = 80;
     const cv = document.createElement('canvas');
     cv.width = W; cv.height = H;
@@ -456,7 +486,7 @@
     ctx.fillStyle = s.color;
     ctx.fillText(date, W - P - dw + 22, P - 2);
 
-    const planets = planetsIn(state.sel);
+    const planets = planetsIn(sel);
     if (planets.length) {
       ctx.font = '700 30px Outfit';
       let x = P;
@@ -482,7 +512,7 @@
     while (ctx.measureText(s.name).width > W - P * 2 && nameSize > 60) ctx.font = '900 ' + (nameSize -= 4) + 'px Outfit';
     ctx.fillText(s.name, P - 6, 868 + (150 - nameSize) * 0.6);
 
-    const text = '“' + lineFor(state.sel, state.day) + '”';
+    const text = '“' + lineFor(sel, day) + '”';
     let size = 60, lines;
     do {
       ctx.font = '800 ' + size + 'px Outfit';
@@ -498,20 +528,13 @@
   }
 
   async function save() {
-    const blob = await drawCard();
-    if (!blob) return;
-    const name = 'daily-ai-horoscope-' + SIGNS[state.sel].key + '.png';
-    const file = new File([blob], name, { type: 'image/png' });
+    const { sel, day } = state;
+    const card = cardFor(sel, day);
+    const file = cardFile(card.blob || (await card), sel);
     if (navigator.canShare && navigator.canShare({ files: [file] }) && matchMedia('(pointer: coarse)').matches) {
       try { await navigator.share({ files: [file], title: 'Daily AI Horoscope' }); return; } catch (e) { if (e.name === 'AbortError') return; }
     }
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    download(file);
   }
 
   // ---------- Wire up ----------
