@@ -25,6 +25,18 @@ a:hover { color: #FF9BCD; }
 .back:hover { color: #111111; background: #FFFFFF; }
 .wordmark { font-weight: 800; font-size: 18px; }
 
+/* Phone: keep the way back in reach while scrolling. */
+@media (max-width: 899px) {
+  .top {
+    position: sticky; top: 0; z-index: 10;
+    flex-wrap: nowrap;
+    margin: 0 -20px; padding: calc(12px + env(safe-area-inset-top)) 20px 12px;
+    background: rgba(17, 17, 17, .88);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(245, 243, 238, .08);
+  }
+}
+
 .kicker { font-family: 'Space Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700; letter-spacing: .08em; }
 .pink { color: #FF6BB5; }
 .lime { color: #C6F432; }
