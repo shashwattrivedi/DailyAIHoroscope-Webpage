@@ -87,22 +87,35 @@ async function generate(env, date) {
   throw new Error('Model output did not contain 12 signs: ' + last.slice(0, 300));
 }
 
+// The R2 file is the final version of a day. If two requests write the same missing
+// day at once, the first upload wins and the other request uses that file instead of
+// its own lines, so the CDN, KV and the API always agree. KV only stores what was
+// published.
 async function ensure(env, date) {
   const key = 'day:' + date;
   const have = await env.HOROSCOPES.get(key, 'json');
   if (have) return have;
-  const made = await generate(env, date);
-  await env.HOROSCOPES.put(key, JSON.stringify(made));
-  return made;
+  const day = (await published(env, date)) || (await publish(env, await generate(env, date)));
+  await env.HOROSCOPES.put(key, JSON.stringify(day));
+  return day;
 }
 
-// A day's lines never change once written, so the CDN may keep the file for a week.
+const fileKey = (date) => 'data/' + date + '.json';
+
+async function published(env, date) {
+  const obj = await env.DATA.get(fileKey(date));
+  return obj ? await obj.json() : null;
+}
+
+// Uploads only if no file exists yet (If-None-Match: *). A day's lines never change
+// once written, so the CDN may keep the file for a week.
 async function publish(env, day) {
-  const key = 'data/' + day.date + '.json';
-  if (await env.DATA.head(key)) return;
-  await env.DATA.put(key, JSON.stringify({ date: day.date, signs: day.signs }), {
+  const body = { date: day.date, signs: day.signs };
+  const put = await env.DATA.put(fileKey(day.date), JSON.stringify(body), {
+    onlyIf: new Headers({ 'If-None-Match': '*' }),
     httpMetadata: { contentType: 'application/json; charset=utf-8', cacheControl: 'public, max-age=604800, immutable' }
   });
+  return put ? body : await published(env, day.date);
 }
 
 const cors = {
@@ -124,10 +137,9 @@ export default {
       // No peeking: a date is only served once it has started somewhere on Earth.
       if (date > last) return json({ error: 'This date has not started anywhere yet.' }, 404);
       let day = await env.HOROSCOPES.get('day:' + date, 'json');
-      // Backstop if the cron missed: generate on demand, but only for dates that are current.
+      // Backstop if the cron missed: write it on demand, but only for dates that are current.
       if (!day && date >= first) {
         try { day = await ensure(env, date); } catch (e) { return json({ error: 'Not ready yet, try again shortly.' }, 503); }
-        ctx.waitUntil(publish(env, day));
       }
       if (!day) return json({ error: 'No horoscope for this date.' }, 404);
       const settled = date < first; // no longer "today" anywhere, will never change
@@ -142,6 +154,6 @@ export default {
   // that is still current somewhere and missing.
   async scheduled(event, env, ctx) {
     const [first, last] = window_(Date.now());
-    for (const date of datesBetween(first, last)) await publish(env, await ensure(env, date));
+    for (const date of datesBetween(first, last)) await ensure(env, date);
   }
 };
