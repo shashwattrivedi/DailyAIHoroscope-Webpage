@@ -130,10 +130,10 @@ a { color: var(--ink); }
 
 /* The card */
 .card { position: relative; flex: none; padding: 0 var(--pad); display: flex; flex-direction: column; gap: 14px; pointer-events: none; }
-.card-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.card-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; }
 .name-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .born { display: none; font-size: 15px; }
-h1 { margin: 0; font-weight: 900; font-size: 64px; line-height: .95; letter-spacing: -.04em; }
+h1 { margin: 0; width: max-content; white-space: nowrap; font-weight: 900; font-size: 64px; line-height: .95; letter-spacing: -.04em; }
 .tabs { display: flex; flex: none; padding: 3px; border-radius: 999px; background: rgba(17, 17, 17, .12); pointer-events: auto; }
 .tabs button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 700; }
 .tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); }

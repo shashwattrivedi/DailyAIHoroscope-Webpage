@@ -109,8 +109,29 @@
     return { top: r.top - a.top, bottom: r.bottom - a.top, left: r.left - a.left, right: r.right - a.left };
   }
 
+  // Long names (Sagittarius, Capricorn) shrink to fit. On phones the name shares a row
+  // with the Today/Yesterday tabs; if it can't stay readable there, the tabs wrap below.
+  function fitName() {
+    const h1 = els.signName;
+    h1.style.fontSize = '';
+    const max = parseFloat(getComputedStyle(h1).fontSize);
+    const cs = getComputedStyle(els.card);
+    const inner = els.card.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const tabs = isDesktop() ? 0 : els.tabToday.parentNode.offsetWidth + 12;
+    const fit = (avail, min) => {
+      let size = Math.min(max, Math.floor(max * avail / h1.scrollWidth));
+      size = Math.max(min, size);
+      h1.style.fontSize = size + 'px';
+      return h1.scrollWidth <= avail;
+    };
+    if (tabs && fit(inner - tabs, 46)) return;
+    h1.style.fontSize = '';
+    fit(inner, 28);
+  }
+
   // Shrink the line until the sky keeps enough room (nothing ever scrolls).
   function fitQuote() {
+    fitName();
     const H = els.app.clientHeight;
     const desk = isDesktop();
     const max = desk ? 52 : 34, min = 15;
@@ -456,8 +477,10 @@
     ctx.fillStyle = '#111111';
     ctx.font = '700 28px "Space Mono"';
     ctx.fillText('BORN ' + s.dates, P, 830);
+    let nameSize = 150;
     ctx.font = '900 150px Outfit';
-    ctx.fillText(s.name, P - 6, 868);
+    while (ctx.measureText(s.name).width > W - P * 2 && nameSize > 60) ctx.font = '900 ' + (nameSize -= 4) + 'px Outfit';
+    ctx.fillText(s.name, P - 6, 868 + (150 - nameSize) * 0.6);
 
     const text = '“' + lineFor(state.sel, state.day) + '”';
     let size = 60, lines;
