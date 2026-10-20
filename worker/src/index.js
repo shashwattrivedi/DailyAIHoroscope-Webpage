@@ -10,7 +10,10 @@
 // data/YYYY-MM-DD.json, which the CDN serves to visitors without running this Worker.
 // /v1/horoscope is only the fallback.
 
+import { share } from './social.js';
+
 const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpius', 'Sagittarius', 'Capricornus', 'Aquarius', 'Pisces'];
+const GENERATE = '0 10 * * *'; // must match the first cron in wrangler.jsonc
 const FIRST_TZ = 14; // hours ahead of UTC
 const LAST_TZ = -12;
 const DAY = 86400000;
@@ -150,10 +153,15 @@ export default {
     return json({ error: 'Not found' }, 404);
   },
 
-  // Daily at 10:00 UTC: write and publish the date that just started, plus any date
-  // that is still current somewhere and missing.
+  // 10:00 UTC: write and publish the date that just started, plus any date that is
+  // still current somewhere and missing. The later crons (10:30, retry 12:30) share it
+  // on social media once the site build has published its images (see social.js).
   async scheduled(event, env, ctx) {
     const [first, last] = window_(Date.now());
-    for (const date of datesBetween(first, last)) await ensure(env, date);
+    if (event.cron === GENERATE) {
+      for (const date of datesBetween(first, last)) await ensure(env, date);
+      return;
+    }
+    await share(env, await ensure(env, last));
   }
 };

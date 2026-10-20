@@ -11,10 +11,24 @@
   "r2_buckets": [
     { "binding": "DATA", "bucket_name": "dailyaihoroscope-data" }
   ],
+  // Settings only. Keys and passwords are secrets: `npx wrangler secret put NAME`
+  // (see .dev.vars.example), never in this file.
   "vars": {
-    "MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+    "MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "SITE": "https://dailyaihoroscope.com",
+    // Platforms to post to: bluesky, x, facebook, instagram, reddit.
+    "SOCIAL": "bluesky,x,facebook,instagram,reddit",
+    // "true": only log what would be posted. Set to "false" to post for real.
+    "SOCIAL_DRY_RUN": "true",
+    // "false": post only the first X post, not the 12 replies (the free X API tier allows few posts).
+    "X_THREAD": "true",
+    "REDDIT_SUBREDDIT": "",
+    "META_GRAPH_VERSION": "v23.0"
   },
-  // Daily at 10:00 UTC, when a new date starts (00:00 in UTC+14): writes and publishes it.
-  // If this run fails, the first request for the date writes it (see fetch()).
-  "triggers": { "crons": ["0 10 * * *"] }
+  // 10:00 UTC, when a new date starts (00:00 in UTC+14): writes and publishes it. If this
+  // run fails, the first request for the date writes it (see fetch()).
+  // 10:30 and 12:30 UTC: share it on social media (after the 10:10 site build); the
+  // second run only retries what didn't post. One cron for both: the Free plan allows
+  // 5 per account.
+  "triggers": { "crons": ["0 10 * * *", "30 10,12 * * *"] }
 }

@@ -1,0 +1,25 @@
+# Copy to .dev.vars for local testing (git ignores .dev.vars). For the deployed Worker,
+# set each one as a secret instead, in your own terminal:
+#   npx wrangler secret put BLUESKY_APP_PASSWORD
+# Leave out any platform you don't use, or remove it from SOCIAL in wrangler.jsonc.
+
+# Bluesky: Settings > Privacy and security > App passwords
+BLUESKY_HANDLE=
+BLUESKY_APP_PASSWORD=
+
+# X: developer.x.com app with Read and write, "Keys and tokens" tab
+X_API_KEY=
+X_API_SECRET=
+X_ACCESS_TOKEN=
+X_ACCESS_SECRET=
+
+# Facebook Page and Instagram (Business account linked to the Page): long-lived Page token
+META_PAGE_ID=
+META_PAGE_TOKEN=
+INSTAGRAM_USER_ID=
+
+# Reddit: reddit.com/prefs/apps, "script" app (set REDDIT_SUBREDDIT in wrangler.jsonc)
+REDDIT_CLIENT_ID=
+REDDIT_CLIENT_SECRET=
+REDDIT_USERNAME=
+REDDIT_PASSWORD=

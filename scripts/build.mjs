@@ -93,8 +93,9 @@ function signPage(template, day, i, meta) {
   return html;
 }
 
-// Draws og/<sign>-<date>.png for every sign. The date is in the file name because
-// platforms cache preview images by URL. Returns false if Chrome isn't available.
+// Draws og/<sign>-<date>.png (link previews) and post/<sign>-<date>.jpg (Instagram,
+// posted by the Worker) for every sign. The date is in the file name because platforms
+// cache images by URL. Returns false if Chrome isn't available.
 async function drawImages(date, lineOf) {
   const chrome = [process.env.CHROME_PATH, '/usr/bin/google-chrome', '/usr/bin/chromium', 'C:/Program Files/Google/Chrome/Application/chrome.exe',
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'].find((p) => p && fs.existsSync(p));
@@ -106,10 +107,13 @@ async function drawImages(date, lineOf) {
     const page = await browser.newPage();
     await page.goto(pathToFileURL(path.join(ROOT, 'scripts', 'og.html')).href, { waitUntil: 'networkidle0' });
     fs.mkdirSync(path.join(OUT, 'og'));
+    fs.mkdirSync(path.join(OUT, 'post'));
     const label = new Date(date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).replace(',', '').toUpperCase();
     for (const s of SIGNS) {
-      const png = await page.evaluate((k, d, l, site) => window.drawOG(k, d, l, site), s.key, label, lineOf(s), SITE.replace(/^https?:\/\//, ''));
-      fs.writeFileSync(path.join(OUT, 'og', slug(s) + '-' + date + '.png'), Buffer.from(png.split(',')[1], 'base64'));
+      for (const [layout, dir, ext] of [['og', 'og', 'png'], ['post', 'post', 'jpg']]) {
+        const img = await page.evaluate((...a) => window.drawCard(...a), layout, s.key, label, lineOf(s), SITE.replace(/^https?:\/\//, ''));
+        fs.writeFileSync(path.join(OUT, dir, slug(s) + '-' + date + '.' + ext), Buffer.from(img.split(',')[1], 'base64'));
+      }
     }
     return true;
   } finally {
@@ -180,4 +184,4 @@ write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE + '/sitemap.xm
 // Keep the pages.dev copies out of search results; the real address is SITE.
 write('_headers', 'https://:project.pages.dev/*\n  X-Robots-Tag: noindex\n\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n');
 
-console.log('Built dist/ for ' + (day ? day.date : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 12 preview images' : '') + ')');
+console.log('Built dist/ for ' + (day ? day.date : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 24 images' : '') + ')');
