@@ -51,7 +51,9 @@
     document.body.appendChild(s);
   }
 
-  renderLines({});
-  fetchHoroscope(localDate(new Date())).then(renderLines);
+  const today = localDate(new Date());
+  const baked = bakedLines(today);
+  renderLines(baked || {});
+  if (!baked) fetchHoroscope(today).then(renderLines);
   loadTweets();
 })();

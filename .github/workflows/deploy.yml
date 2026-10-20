@@ -1,0 +1,37 @@
+# Builds the site with the day's lines written into the HTML and deploys it to
+# Cloudflare Pages. Runs on every push, and daily just after a new date starts
+# (00:00 in UTC+14 = 10:00 UTC, when the Worker publishes it). The second daily run
+# is a backup in case GitHub skips or delays the first.
+#
+# Needs repository secrets CLOUDFLARE_API_TOKEN (Account > Cloudflare Pages > Edit)
+# and CLOUDFLARE_ACCOUNT_ID.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main, redesign]
+  schedule:
+    - cron: '10 10 * * *'
+    - cron: '10 13 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/build.mjs
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4'
+          command: pages deploy dist --project-name dailyaihoroscope --branch ${{ github.ref_name }} --commit-hash ${{ github.sha }}

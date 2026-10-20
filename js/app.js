@@ -18,12 +18,15 @@
 
   let now = new Date();
   // Lines for the visitor's own calendar date; null while loading.
-  let lines = null;
+  let lines = bakedLines(localDate(now));
+  // Set on the sign pages (/aries …) by the daily build.
+  const pageSign = SIGNS.findIndex((s) => s.key === els.app.dataset.sign);
   let started = false;
 
   const state = { sel: initialSign(), focus: null, sky: [], px: 0, py: 0 };
 
   function initialSign() {
+    if (pageSign >= 0) return pageSign;
     try {
       const k = localStorage.getItem(STORE);
       const i = SIGNS.findIndex((s) => s.key === k);
@@ -317,6 +320,11 @@
     if (i === state.sel) return;
     state.sel = i;
     state.focus = null;
+    // On a sign page, keep the address and title in step with the sign shown.
+    if (pageSign >= 0) {
+      history.replaceState(null, '', signSlug(SIGNS[i]) + (location.pathname.endsWith('.html') ? '.html' : ''));
+      document.title = SIGNS[i].name + ' horoscope today · Daily AI Horoscope';
+    }
     renderText();
     fitQuote();
     renderSky(true);
@@ -450,16 +458,17 @@
     if (!lines) return;
     const sel = state.sel;
     const text = SIGNS[sel].name + ' today: “' + lineFor(sel) + '” #DailyAIHoroscopeWasCorrect';
+    const url = SITE + '/' + signSlug(SIGNS[sel]);
     const card = cardFor(sel);
     const file = cardFile(card.blob || (await card), sel);
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: 'Daily AI Horoscope', text: text + ' ' + SITE }); return; } catch (e) { if (e.name === 'AbortError') return; }
+      try { await navigator.share({ files: [file], title: 'Daily AI Horoscope', text: text + ' ' + url }); return; } catch (e) { if (e.name === 'AbortError') return; }
     } else if (navigator.share) {
-      try { await navigator.share({ title: 'Daily AI Horoscope', text, url: SITE }); return; } catch (e) { if (e.name === 'AbortError') return; }
+      try { await navigator.share({ title: 'Daily AI Horoscope', text, url }); return; } catch (e) { if (e.name === 'AbortError') return; }
     }
     // No share sheet: copy the text and save the image so both can be posted.
     let copied = false;
-    try { await navigator.clipboard.writeText(text + ' ' + SITE); copied = true; } catch (e) {}
+    try { await navigator.clipboard.writeText(text + ' ' + url); copied = true; } catch (e) {}
     download(file);
     flash(copied ? 'Text copied, image saved' : 'Image saved');
   }

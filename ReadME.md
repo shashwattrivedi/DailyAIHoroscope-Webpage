@@ -31,8 +31,15 @@ Glider.js : [GitHub - NickPiscitelli/Glider.js: A fast, lightweight, dependency 
 - `js/constellations.js`: constellation figures. `js/signs.js`: signs, dates and colours.
 - `js/astronomy.browser.min.js`: [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT), used for today's planet positions.
 - `worker/`: the Cloudflare Worker that writes the horoscopes (see below).
+- `scripts/build.mjs`: the daily build (see below).
 
-The site itself is static with no build step. The API address is in the `horoscope-api` meta tag of both pages.
+The pages work as they are (open `index.html` from any static server). The API address is in the `horoscope-api` meta tag of both pages.
+
+# Daily build and deploy
+
+`node scripts/build.mjs` copies the site into `dist/` with the newest date's lines written into the HTML, so search engines and link previews see them without running JavaScript. It also writes a page per sign (`/aries` … `/pisces`, each with its own title and description), `sitemap.xml`, `robots.txt`, and `_headers` (keeps the `pages.dev` copies out of search). Visitors still get their own local date: the page swaps to it on load if it differs.
+
+`.github/workflows/deploy.yml` runs the build and deploys `dist/` to the Cloudflare Pages project `dailyaihoroscope` on every push and daily at 10:10 UTC, just after a new date starts. It needs the repository secrets `CLOUDFLARE_API_TOKEN` (permission: Account > Cloudflare Pages > Edit) and `CLOUDFLARE_ACCOUNT_ID`.
 
 # Daily horoscopes (worker/)
 

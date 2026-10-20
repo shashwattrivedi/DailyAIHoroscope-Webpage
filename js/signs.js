@@ -35,11 +35,26 @@ function dataKey(sign) {
   return sign.key.charAt(0).toUpperCase() + sign.key.slice(1);
 }
 
+// Page address for a sign: /aries … /scorpio, /capricorn …
+const signSlug = (sign) => sign.name.toLowerCase();
+
 const localDate = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 
-// The day's lines are a static file on the CDN (horoscope-data, published by the
-// Worker once the date starts). The Worker API is only the fallback.
+// The daily build writes the newest date's lines into the page itself (#baked), so
+// crawlers and link previews see them. Returns them if they are for this date.
+function bakedLines(date) {
+  try {
+    const b = JSON.parse(document.getElementById('baked').textContent);
+    if (b.date === date) return b.signs;
+  } catch (e) {}
+  return null;
+}
+
+// Otherwise the day's lines are a static file on the CDN (horoscope-data, published by
+// the Worker once the date starts). The Worker API is only the fallback.
 async function fetchHoroscope(date) {
+  const baked = bakedLines(date);
+  if (baked) return baked;
   const meta = (name) => (document.querySelector('meta[name="' + name + '"]') || {}).content;
   const tries = [];
   if (meta('horoscope-data')) tries.push(meta('horoscope-data') + '/data/' + date + '.json');
