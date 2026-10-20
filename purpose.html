@@ -2,187 +2,130 @@
 <html lang="en">
 
 <head>
-    <title>Daily AI Horoscope</title>
-      <!-- Roboto Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Pridi:wght@200;300;400;500;600;700&family=Underdog&display=swap"
-        rel="stylesheet">
-
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-
-    <link rel="stylesheet" href="style.css">
-    <script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-    <link rel="stylesheet" href="style.css">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" >    <script>
-        // Load tweets dynamically before page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            const tweetIdsElement = document.getElementById('tweetIds');
-            const tweetListElement = document.getElementById('tweetList');
-            
-            if (tweetIdsElement && tweetListElement) {
-                const tweetIds = tweetIdsElement.textContent.trim();
-                
-                if (tweetIds) {
-                    // Split comma-separated IDs and create tweet elements
-                    const ids = tweetIds.split(',').map(id => id.trim()).filter(id => id);
-                    
-                    // Create tweets only once (no duplication for infinite scroll)
-                    ids.forEach(function(tweetId) {
-                        // Create blockquote element for each tweet
-                        const blockquote = document.createElement('blockquote');
-                        blockquote.className = 'twitter-tweet';
-                        
-                        const link = document.createElement('a');
-                        link.href = `https://twitter.com/user/status/${tweetId}`;
-                        
-                        blockquote.appendChild(link);
-                        tweetListElement.appendChild(blockquote);
-                    });
-                    
-                    // Reinitialize Twitter widgets after adding elements
-                    if (window.twttr && window.twttr.widgets) {
-                        window.twttr.widgets.load(tweetListElement);
-                    }
-                    
-                    // Stop auto-scroll when user manually scrolls
-                    const twitterContainer = document.querySelector('.twitterContainer');
-                    let userScrolled = false;
-                    
-                    twitterContainer.addEventListener('scroll', function() {
-                        if (!userScrolled) {
-                            userScrolled = true;
-                            tweetListElement.style.animationPlayState = 'paused';
-                        }
-                    });
-                    
-                    // Also stop on mouse wheel
-                    twitterContainer.addEventListener('wheel', function() {
-                        userScrolled = true;
-                        tweetListElement.style.animationPlayState = 'paused';
-                    });
-                }
-            }
-        });
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Why it feels true · Daily AI Horoscope</title>
+  <meta name="description" content="Why random AI-written horoscopes still feel personal: the Barnum effect, explained with today's 12 lines." />
+  <meta name="theme-color" content="#111111" />
+  <link rel="icon" href="media/horoscope.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/purpose.css" />
 </head>
 
-<body class="flex-container">
-    <header id="website-header"><a href="index.html">Daily AI Horoscope</a></header>
-    <br>
-    <br>
-    <div>
-        <div class="questions">
-            <h>What is the purpose of this website?</h>
-        </div>
-        <div class="answers">
-            <p>
-                Horoscopes have always been a hit or a miss for everyone still; people come back to them, try to make
-                sense of it and fit it according to their life experiences.
-                The psychological phenomenon Barnum effect explains the reason why horoscope draws people. If you
-                notice, horoscopes are generally very vague and written so that
-                they can be interpreted in multiple ways so that they apply to almost anybody. Suppose the reader wants
-                to believe in it. In that case, they will try to seek a
-                correspondence betweenthe horoscope and their life experience. Once they find any connection, this
-                reinforces their bias; and they start feeling by reading horoscopes,
-                they know about something that will happen in future.
-                <br>
-                Now, this website is <b>not</b> advocating anything against astrology. Astrology tries to find
-                correlations between the life affairs of earthly beings with the motion of
-                celestial objects. It is a result of observing these heavenly bodies for thousands of years. It is a
-                very interesting field, applying multiple mathematical models
-                over complex planetary motions, geological coordinates, dates, etc. and drawing inferences from the data
-                gathered by observing how similar planetary locations
-                affected someone in the past. However, these inferences don't have any scientific backing. Does the
-                planet's position affect the life of any earthling? Nobody knows
-                for sure. In the end, it's the astrologer's skill to get it out from the person what they want to hear.
-                They sometimes help people get through difficult life phases
-                by blaming it on some celestial body's position. They suggest that they do prayers/meditate, which
-                eventually helps them cope with difficulties. Shoutout to those !!
-                <br>
-                This website is a fun experiment. This website uses LLM to produce sentences that
-                sound like a horoscope. The model outputs 12 random sentences,
-                one for each zodiac sign. It will be fascinating to see if people can still modify the random sentence
-                and find any connection with any personal event. It will also
-                be terrifying if people start believing in it, considering these are outputs of an AI.
-                <br>                 
-                <span class="answers">
-                    <p style="color: red;">
-                        Warning: Horoscopes do not generally contain any instruction for the reader,
-                        but the horoscopes on this page may contain instructions
-                        as do not go through any scrutiny. These 12 sentences are produced randomly by LLM.
-                        Please do not follow any instructions mentioned in any horoscope.
-                        I do not want anyone following any instructions given by AI. This holds for anything that you read
-                        online; please use your discretion. I will not be responsible for anything you follow after reading the horoscope.
-                    </p>
-                </span>
-                <br> <br>
-                If you find any connection between the horoscope and any event with you, please read on.
-            </p>
-        </div>
+<body>
+  <div class="page">
+    <header class="top">
+      <a class="back" href="index.html">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+        Back to today
+      </a>
+      <span class="wordmark">Daily AI Horoscope</span>
+    </header>
 
-        <div class="questions">
-            <h>What to do next?</h>
-        </div>
-        <div class="answers">
-            <p>
-                If you find any connection between the horoscope and any event with you, please share the screenshot of
-                the horoscope with your story along with
-                #DailyAIHoroscopeWasCorrect on Twitter <a href="https://twitter.com/intent/tweet?button_hashtag=DailyAIHoroscopeWasCorrect&ref_src=twsrc%5Etfw" class="twitter-hashtag-button" data-show-count="false">Tweet #DailyAIHoroscopeWasCorrect</a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> . Here are the stories on Twitter from others for yesterdays's
-                horoscope and past.                  <a href="https://twitter.com/hashtag/DailyAIHoroscopeWasCorrect" 
-                   class="twitter-timeline" 
-                   data-chrome="noheader nofooter noborders transparent"
-                   data-tweet-limit="5"
-                   data-theme="light">
-                   #DailyAIHoroscopeWasCorrect Tweets
-                </a>
-            </p>
-        </div>        <!-- Hidden div containing comma-separated tweet IDs -->
-        <div id="tweetIds" style="display: none;"></div>
-        
-        <div class="twitterContainer">
-            <div id="tweetList" class="tweet-list">
-                <!-- Tweets will be dynamically loaded here -->
-            </div>
-        </div>
+    <section class="hero">
+      <span class="kicker pink">WHY THIS SITE EXISTS</span>
+      <h1>A random sentence. Why does it feel like it’s about you?</h1>
+      <p>Every day a language model writes 12 sentences that sound like horoscopes, one for each sign. No planets, no charts, no astrologer. This site is a small experiment: do people still find them true?</p>
+    </section>
 
-        <div class="questions">
-            <h>What are those dots behind each horoscope?</h>
+    <section class="try" aria-labelledby="try">
+      <div class="try-head">
+        <div class="try-title">
+          <span class="kicker lime">TRY IT</span>
+          <h2 id="try">Read all 12 of today’s lines. Tap every one that fits your day.</h2>
         </div>
-        <div class="answers">
-            <p>
-                Those dots represent star constellations associated with each astrological sign. They connect to form figures of mythological creatures, animals, or people
-                related to zodiac signs. There is no standard representation of any constellation. The figures you see are ones I found online, mainly on the IAU's website, or
-                ones that I liked or created myself. You can easily draw a parallel between this and how horoscopes work.
-                Just as people try to connect stars to form a figure that matches something they want to see, horoscopes are similarly vague, yet people still match them
-                with their experiences, even when those connections are paper-thin.
-                Most of you won't actually see a Libra in the Libra constellation; if you want to share what you see, please read the "Want to contribute?" section.
-            </p>
-        </div>
+        <div class="count" aria-live="polite"><span id="count">0</span><span>of 12 fit you</span></div>
+      </div>
+      <div class="lines" id="lines"></div>
+      <p class="verdict" id="verdict" hidden></p>
+    </section>
 
-        <div class="questions">
-            <h>
-                Want to contribute?
-            </h>
-        </div>
-        <div class="answers">
-            <p>
-                I am not an expert in Web/ UI development. There may be many discrepancies in the website design, and I
-                would not have followed many UI standards in multiple places.
-                After working on this project, my respect for Web/UI developers increased multi-fold. I have tried to
-                keep the design as clean as possible and not use much CSS.
-                If you are a web developer and something irks you while browsing this website, I would appreciate it if
-                you could contribute to the page. I have made the template
-                page for the website public on <a href="https://github.com/shashwattrivedi/DailyAIHoroscope-Webpage">Github</a> . You can raise issues that you see or contribute to the design.
-                This template is filled in with the model's output to produce the horoscope page. You can
-                contribute your representation of the constellation on the Github page. Let's see if your visualisation
-                is better.
-                <br>
+    <section class="barnum">
+      <div class="section-head">
+        <span class="kicker violet">THE BARNUM EFFECT</span>
+        <h2>We see ourselves in statements that could describe anyone.</h2>
+      </div>
+      <div class="cards">
+        <article style="background: #FF6BB5">
+          <span class="num">01</span>
+          <h3>Vague on purpose</h3>
+          <p>Horoscopes are written so they can be read many ways, and so apply to almost anybody.</p>
+        </article>
+        <article style="background: #9B87FF">
+          <span class="num">02</span>
+          <h3>We fill in the gaps</h3>
+          <p>If we want to believe, we look for a match between the line and our own day, and usually find one.</p>
+        </article>
+        <article style="background: #FFD23F">
+          <span class="num">03</span>
+          <h3>One hit sticks</h3>
+          <p>A single match feels like proof, and it makes us trust the next one a little more.</p>
+        </article>
+      </div>
+      <figure class="forer">
+        <span>1948</span>
+        <figcaption>Psychologist Bertram Forer gave his students a “personal” profile. Everyone got the same one, built from horoscope columns. They still rated it highly accurate.</figcaption>
+      </figure>
+    </section>
 
-                Also, if any written content except the horoscope is not clear, please raise the issue on the Github
-                page. I do not intend to hurt any sentiment in any way; people are free to believe
-                in whatever they want to believe, just use common sense before becoming dependent on anything.
-            </p>
-        </div>
-    </div>
+    <section class="two">
+      <div>
+        <h2>Not against astrology</h2>
+        <p>Astrology looks for links between life on Earth and the motion of the sky, built on thousands of years of observation. This site isn’t arguing with it. Believe what you like, just use common sense before depending on anything.</p>
+      </div>
+      <div>
+        <h2>Please don’t follow it</h2>
+        <p>These 12 lines come from a model nobody reviews. If one sounds like an instruction, ignore it. That goes for anything you read online.</p>
+      </div>
+    </section>
+
+    <section class="dots-section">
+      <svg role="img" aria-label="Libra constellation" viewBox="185 114 913 1143">
+        <g stroke="#F5F3EE" stroke-opacity="0.5" stroke-width="5" stroke-linecap="round"><line x1="494.8" y1="432.4" x2="989" y2="487"/><line x1="472" y1="410" x2="673" y2="162"/><line x1="862" y1="939" x2="1013" y2="524"/><line x1="728" y1="164" x2="1003.5" y2="459.1"/><line x1="460" y1="1088.8" x2="460" y2="453"/></g>
+        <g fill="#F5F3EE"><circle cx="850" cy="970" r="22"/><circle cx="465" cy="430" r="19"/><circle cx="1048" cy="393" r="14"/><circle cx="827" cy="497" r="13"/><circle cx="387" cy="679" r="15"/><circle cx="457" cy="1121" r="21"/><circle cx="440" cy="1207" r="21"/><circle cx="754" cy="682" r="16"/><circle cx="235" cy="529" r="19"/><circle cx="707" cy="140" r="25"/><circle cx="1027" cy="489" r="25"/></g>
+      </svg>
+      <div>
+        <h2>What are the dots?</h2>
+        <p>Each sign’s constellation, joined into a figure. There is no single correct way to draw one, a lot like reading a horoscope: we connect points until they look like what we expect. Most people won’t see scales in Libra. The planets on top are where they really are in the sky today.</p>
+        <a class="link" href="https://github.com/shashwattrivedi/DailyAIHoroscope-Webpage">Draw your own version on GitHub →</a>
+      </div>
+    </section>
+
+    <section class="felt">
+      <div>
+        <h2>Felt the same?</h2>
+        <p>Share the line and your story with #DailyAIHoroscopeWasCorrect, and see what happened to others.</p>
+      </div>
+      <div class="felt-actions">
+        <a class="btn dark" href="https://twitter.com/intent/tweet?hashtags=DailyAIHoroscopeWasCorrect">Share your story</a>
+        <a class="btn outline" href="https://twitter.com/hashtag/DailyAIHoroscopeWasCorrect">Read stories</a>
+      </div>
+    </section>
+
+    <!-- Hidden div containing comma-separated tweet IDs -->
+    <div id="tweetIds" style="display: none;"></div>
+    <section class="stories" id="stories" hidden>
+      <h2>Stories from others</h2>
+      <div id="tweetList" class="tweet-list"></div>
+    </section>
+
+    <section class="two">
+      <div>
+        <h2>Want to contribute?</h2>
+        <p>The page is open source. If something in the design bugs you, or any text (other than the horoscopes) is unclear, raise an issue or send a pull request on <a class="inline" href="https://github.com/shashwattrivedi/DailyAIHoroscope-Webpage">GitHub</a>. You can also contribute your own drawing of a constellation.</p>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>Constellations based on IAU images, CC BY 4.0. Planet positions: Astronomy Engine.</span>
+      <a href="https://github.com/shashwattrivedi/DailyAIHoroscope-Webpage">Open source on GitHub</a>
+    </footer>
+  </div>
+
+  <script src="js/signs.js"></script>
+  <script src="js/purpose.js"></script>
 </body>
 
 </html>

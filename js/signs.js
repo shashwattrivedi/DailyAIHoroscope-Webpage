@@ -1,0 +1,46 @@
+// Shared by index.html and purpose.html.
+
+// key (also the data key, capitalised), display name, glyph, birth dates, colour,
+// IAU constellation symbol, ecliptic longitude span of the constellation (deg).
+const SIGNS = [
+  { key: 'aries', name: 'Aries', glyph: '♈︎', dates: 'MAR 21 – APR 19', color: '#FF7A59', iau: 'Ari', span: [28.7, 53.4] },
+  { key: 'taurus', name: 'Taurus', glyph: '♉︎', dates: 'APR 20 – MAY 20', color: '#3DDC97', iau: 'Tau', span: [53.4, 90.4] },
+  { key: 'gemini', name: 'Gemini', glyph: '♊︎', dates: 'MAY 21 – JUN 20', color: '#FFD23F', iau: 'Gem', span: [90.4, 118.2] },
+  { key: 'cancer', name: 'Cancer', glyph: '♋︎', dates: 'JUN 21 – JUL 22', color: '#9AD4FF', iau: 'Cnc', span: [118.2, 138.1] },
+  { key: 'leo', name: 'Leo', glyph: '♌︎', dates: 'JUL 23 – AUG 22', color: '#FFA62B', iau: 'Leo', span: [138.1, 174.2] },
+  { key: 'virgo', name: 'Virgo', glyph: '♍︎', dates: 'AUG 23 – SEP 22', color: '#B5E48C', iau: 'Vir', span: [174.2, 218.0] },
+  { key: 'libra', name: 'Libra', glyph: '♎︎', dates: 'SEP 23 – OCT 22', color: '#FF6BB5', iau: 'Lib', span: [218.0, 241.0] },
+  { key: 'scorpius', name: 'Scorpio', glyph: '♏︎', dates: 'OCT 23 – NOV 21', color: '#9B87FF', iau: 'Sco', span: [241.0, 248.0] },
+  { key: 'sagittarius', name: 'Sagittarius', glyph: '♐︎', dates: 'NOV 22 – DEC 21', color: '#FF9E7A', iau: 'Sgr', span: [266.3, 299.7] },
+  { key: 'capricornus', name: 'Capricorn', glyph: '♑︎', dates: 'DEC 22 – JAN 19', color: '#A9B4C8', iau: 'Cap', span: [299.7, 327.5] },
+  { key: 'aquarius', name: 'Aquarius', glyph: '♒︎', dates: 'JAN 20 – FEB 18', color: '#5ED3F3', iau: 'Aqr', span: [327.5, 351.6] },
+  { key: 'pisces', name: 'Pisces', glyph: '♓︎', dates: 'FEB 19 – MAR 20', color: '#D49BFF', iau: 'Psc', span: [351.6, 388.7] }
+];
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Sign by calendar date (Aries starts Mar 21). Returns an index into SIGNS.
+function signIndex(m, d) {
+  const md = m * 100 + d;
+  if (md < 120 || md >= 1222) return 9;
+  if (md < 219) return 10;
+  if (md < 321) return 11;
+  let i = 0;
+  [321, 420, 521, 621, 723, 823, 923, 1023, 1122].forEach((v, k) => { if (md >= v) i = k; });
+  return i;
+}
+
+// The daily job writes "Sign: text::" lines into the hidden data divs.
+function parseHoroscopeText(text) {
+  const out = {};
+  (text || '').split('::').forEach((line) => {
+    line = line.trim();
+    const i = line.indexOf(':');
+    if (i > 0) out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
+  });
+  return out;
+}
+
+function dataKey(sign) {
+  return sign.key.charAt(0).toUpperCase() + sign.key.slice(1);
+}

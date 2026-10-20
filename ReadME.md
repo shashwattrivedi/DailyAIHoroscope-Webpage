@@ -22,3 +22,13 @@ If you find any issue with the content on the page ( except horoscope ), please 
 Thanks [iau.org](http://www.iau.org/) (IAU and Sky & Telescope) for publicly sharing the sky chart.
 
 Glider.js : [GitHub - NickPiscitelli/Glider.js: A fast, lightweight, dependency free, native scrolling carousel alternative!](https://github.com/NickPiscitelli/Glider.js/)
+
+# Structure
+
+- `index.html`: the daily card (one screen, no scroll). The daily job writes the 12 lines into the hidden `#horoscopeDataToday` and `#horoscopeDataYesterday` divs as `Sign: text::` lines (sign keys `Aries` … `Scorpius`, `Capricornus` …).
+- `purpose.html`: why the site exists (Barnum effect). Its "Try it" section reads today's lines from `index.html`; `#tweetIds` takes comma-separated tweet IDs.
+- `js/app.js`: rendering, constellation animation, planets, parallax, share and save-as-image.
+- `js/constellations.js`: constellation figures. `js/signs.js`: signs, dates and colours.
+- `js/astronomy.browser.min.js`: [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT), used for today's planet positions.
+
+It is a static site with no build step, so any static host works (GitHub Pages, Cloudflare Pages, …).
