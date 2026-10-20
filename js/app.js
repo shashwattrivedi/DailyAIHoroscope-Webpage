@@ -561,7 +561,7 @@
     lines.forEach((l, i) => ctx.fillText(l, P, 1040 + i * lh));
 
     ctx.font = '700 26px "Space Mono"';
-    ctx.fillText(SITE.replace(/^https?:\/\//, '') + '  #DailyAIHoroscopeWasCorrect', P, H - P);
+    ctx.fillText(SITE.replace(/^https?:\/\//, ''), P, H - P);
     return new Promise((r) => cv.toBlob(r, 'image/png'));
   }
 
