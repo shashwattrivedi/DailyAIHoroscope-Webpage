@@ -2,13 +2,14 @@
   const $ = (id) => document.getElementById(id);
   const picked = {};
 
-  // Today's lines live in index.html, where the daily job writes them.
+  // Today's lines for the visitor's own date, from the daily Worker.
   async function loadLines() {
+    const d = new Date();
+    const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     try {
-      const res = await fetch('index.html', { cache: 'no-cache' });
-      const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
-      const el = doc.getElementById('horoscopeDataToday');
-      if (el) return parseHoroscopeText(el.textContent);
+      const api = document.querySelector('meta[name="horoscope-api"]').content;
+      const res = await fetch(api + '/v1/horoscope?date=' + date);
+      if (res.ok) return (await res.json()).signs || {};
     } catch (e) {}
     return {};
   }
@@ -24,7 +25,7 @@
       btn.setAttribute('aria-pressed', 'false');
       btn.innerHTML = '<span class="line-sign"></span><span class="line-text"></span>';
       btn.firstChild.textContent = s.glyph + ' ' + s.name.toUpperCase();
-      btn.lastChild.textContent = lines[dataKey(s)] || 'No horoscope available for today.';
+      btn.lastChild.textContent = lines[dataKey(s)] || '…';
       btn.addEventListener('click', () => {
         picked[s.key] = !picked[s.key];
         btn.setAttribute('aria-pressed', picked[s.key] ? 'true' : 'false');

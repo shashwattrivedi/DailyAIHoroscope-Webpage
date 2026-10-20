@@ -30,17 +30,7 @@ function signIndex(m, d) {
   return i;
 }
 
-// The daily job writes "Sign: text::" lines into the hidden data divs.
-function parseHoroscopeText(text) {
-  const out = {};
-  (text || '').split('::').forEach((line) => {
-    line = line.trim();
-    const i = line.indexOf(':');
-    if (i > 0) out[line.slice(0, i).trim()] = line.slice(i + 1).trim();
-  });
-  return out;
-}
-
+// Key used by the API: Aries … Scorpius, Capricornus …
 function dataKey(sign) {
   return sign.key.charAt(0).toUpperCase() + sign.key.slice(1);
 }

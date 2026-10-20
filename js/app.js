@@ -11,16 +11,18 @@
     app: $('app'), dust: $('dust'), sky: $('sky'), tip: $('tip'), tipText: $('tipText'),
     chips: $('chips'), finder: $('finder'), barDates: $('barDates'), barName: $('barName'),
     dots: $('dots'), prev: $('prev'), next: $('next'), gap: $('gap'), card: $('card'),
-    born: $('born'), signName: $('signName'), tabToday: $('tabToday'), tabYday: $('tabYday'),
+    born: $('born'), signName: $('signName'), datePill: $('datePill'),
     quote: $('quote'), actions: $('actions'), shareLabel: $('shareLabel'),
     sheet: $('sheet'), tiles: $('tiles'), openSheet: $('openSheet')
   };
 
-  const today = parseHoroscopeText($('horoscopeDataToday').textContent);
-  const yesterday = parseHoroscopeText($('horoscopeDataYesterday').textContent);
-  const now = new Date();
+  const API = document.querySelector('meta[name="horoscope-api"]').content;
+  let now = new Date();
+  // Lines for the visitor's own calendar date; null while loading.
+  let lines = null;
+  let started = false;
 
-  const state = { sel: initialSign(), day: 0, focus: null, sky: [], px: 0, py: 0 };
+  const state = { sel: initialSign(), focus: null, sky: [], px: 0, py: 0 };
 
   function initialSign() {
     try {
@@ -35,9 +37,54 @@
     try { localStorage.setItem(STORE, SIGNS[state.sel].key); } catch (e) {}
   }
 
-  function lineFor(i, day) {
-    const src = day === 0 ? today : yesterday;
-    return src[dataKey(SIGNS[i])] || (day === 0 ? 'No horoscope available for today.' : 'No horoscope available for yesterday.');
+  function lineFor(i) {
+    return lines[dataKey(SIGNS[i])] || 'Today’s lines are still being written. Check back in a minute.';
+  }
+
+  const localDate = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+  // Everyone sees the lines for their own date: a new set appears at local midnight.
+  async function loadDay() {
+    const date = localDate(now);
+    let got = {};
+    try {
+      const res = await fetch(API + '/v1/horoscope?date=' + date);
+      if (res.ok) got = (await res.json()).signs || {};
+    } catch (e) {}
+    if (date !== localDate(now)) return;
+    lines = got;
+    cards.clear();
+    renderText();
+    fitQuote();
+    // Planets are placed around the text, so re-place them if the sky is already up.
+    if (started) renderSky(false);
+  }
+
+  function setDate() {
+    els.datePill.textContent = DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()];
+  }
+
+  // Roll over at local midnight, also after the tab or phone wakes up.
+  let midnightT = 0;
+  function watchMidnight() {
+    clearTimeout(midnightT);
+    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1);
+    midnightT = setTimeout(checkDate, Math.min(next - Date.now(), 2147483647));
+  }
+  function checkDate() {
+    const t = new Date();
+    if (localDate(t) !== localDate(now)) {
+      now = t;
+      lines = null;
+      setDate();
+      state.sky = computeSky(now);
+      state.focus = null;
+      started = false;
+      buildLists();
+      renderText();
+      loadDay().then(() => { started = true; renderSky(true); });
+    }
+    watchMidnight();
   }
 
   // Where each planet is today: its real constellation (IAU boundaries) and ecliptic position.
@@ -109,24 +156,14 @@
     return { top: r.top - a.top, bottom: r.bottom - a.top, left: r.left - a.left, right: r.right - a.left };
   }
 
-  // Long names (Sagittarius, Capricorn) shrink to fit. On phones the name shares a row
-  // with the Today/Yesterday tabs; if it can't stay readable there, the tabs wrap below.
+  // Long names (Sagittarius, Capricorn) shrink to fit the width.
   function fitName() {
     const h1 = els.signName;
     h1.style.fontSize = '';
     const max = parseFloat(getComputedStyle(h1).fontSize);
     const cs = getComputedStyle(els.card);
     const inner = els.card.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    const tabs = isDesktop() ? 0 : els.tabToday.parentNode.offsetWidth + 12;
-    const fit = (avail, min) => {
-      let size = Math.min(max, Math.floor(max * avail / h1.scrollWidth));
-      size = Math.max(min, size);
-      h1.style.fontSize = size + 'px';
-      return h1.scrollWidth <= avail;
-    };
-    if (tabs && fit(inner - tabs, 46)) return;
-    h1.style.fontSize = '';
-    fit(inner, 28);
+    if (h1.scrollWidth > inner) h1.style.fontSize = Math.max(28, Math.floor(max * inner / h1.scrollWidth)) + 'px';
   }
 
   // Shrink the line until the sky keeps enough room (nothing ever scrolls).
@@ -242,17 +279,15 @@
     els.signName.textContent = s.name;
     els.prev.setAttribute('aria-label', 'Previous sign, ' + SIGNS[(state.sel + 11) % 12].name);
     els.next.setAttribute('aria-label', 'Next sign, ' + SIGNS[(state.sel + 1) % 12].name);
-    els.tabToday.setAttribute('aria-selected', state.day === 0 ? 'true' : 'false');
-    els.tabYday.setAttribute('aria-selected', state.day === 1 ? 'true' : 'false');
-    els.quote.textContent = '“' + lineFor(state.sel, state.day) + '”';
+    els.quote.textContent = lines ? '“' + lineFor(state.sel) + '”' : '';
     els.quote.classList.remove('rise');
     void els.quote.offsetWidth;
-    els.quote.classList.add('rise');
+    if (lines) els.quote.classList.add('rise');
     els.dots.querySelectorAll('span').forEach((d, i) => d.classList.toggle('on', i === state.sel));
     els.chips.querySelectorAll('.chip').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
     els.tiles.querySelectorAll('.tile').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
     els.shareLabel.textContent = 'Felt the same? Share it';
-    prewarm();
+    if (lines) prewarm();
   }
 
   function buildLists() {
@@ -395,10 +430,9 @@
   // The card image is drawn ahead of time so sharing starts straight from the tap
   // (Safari drops navigator.share if it waits too long after the gesture).
   const cards = new Map();
-  function cardFor(sel, day) {
-    const k = sel + '-' + day;
-    if (!cards.has(k)) cards.set(k, drawCard(sel, day).then((blob) => (cards.get(k).blob = blob)));
-    return cards.get(k);
+  function cardFor(sel) {
+    if (!cards.has(sel)) cards.set(sel, drawCard(sel).then((blob) => (cards.get(sel).blob = blob)));
+    return cards.get(sel);
   }
   function cardFile(blob, sel) {
     return new File([blob], 'daily-ai-horoscope-' + SIGNS[sel].key + '.png', { type: 'image/png' });
@@ -406,7 +440,7 @@
   let prewarmT = 0;
   function prewarm() {
     clearTimeout(prewarmT);
-    prewarmT = setTimeout(() => cardFor(state.sel, state.day), 400);
+    prewarmT = setTimeout(() => cardFor(state.sel), 400);
   }
 
   function download(file) {
@@ -420,9 +454,10 @@
   }
 
   async function share() {
-    const { sel, day } = state;
-    const text = SIGNS[sel].name + (day === 0 ? ' today' : ' yesterday') + ': “' + lineFor(sel, day) + '” #DailyAIHoroscopeWasCorrect';
-    const card = cardFor(sel, day);
+    if (!lines) return;
+    const sel = state.sel;
+    const text = SIGNS[sel].name + ' today: “' + lineFor(sel) + '” #DailyAIHoroscopeWasCorrect';
+    const card = cardFor(sel);
     const file = cardFile(card.blob || (await card), sel);
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file], title: 'Daily AI Horoscope', text: text + ' ' + SITE }); return; } catch (e) { if (e.name === 'AbortError') return; }
@@ -448,7 +483,7 @@
   }
 
   // 1080x1350 card for stories and feeds.
-  async function drawCard(sel, day) {
+  async function drawCard(sel) {
     const s = SIGNS[sel], c = C[s.key];
     const W = 1080, H = 1350, P = 80;
     const cv = document.createElement('canvas');
@@ -512,7 +547,7 @@
     while (ctx.measureText(s.name).width > W - P * 2 && nameSize > 60) ctx.font = '900 ' + (nameSize -= 4) + 'px Outfit';
     ctx.fillText(s.name, P - 6, 868 + (150 - nameSize) * 0.6);
 
-    const text = '“' + lineFor(sel, day) + '”';
+    const text = '“' + lineFor(sel) + '”';
     let size = 60, lines;
     do {
       ctx.font = '800 ' + size + 'px Outfit';
@@ -528,8 +563,9 @@
   }
 
   async function save() {
-    const { sel, day } = state;
-    const card = cardFor(sel, day);
+    if (!lines) return;
+    const sel = state.sel;
+    const card = cardFor(sel);
     const file = cardFile(card.blob || (await card), sel);
     if (navigator.canShare && navigator.canShare({ files: [file] }) && matchMedia('(pointer: coarse)').matches) {
       try { await navigator.share({ files: [file], title: 'Daily AI Horoscope' }); return; } catch (e) { if (e.name === 'AbortError') return; }
@@ -539,11 +575,9 @@
 
   // ---------- Wire up ----------
 
-  $('datePill').textContent = DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()];
+  setDate();
   els.prev.addEventListener('click', () => select((state.sel + 11) % 12));
   els.next.addEventListener('click', () => select((state.sel + 1) % 12));
-  els.tabToday.addEventListener('click', () => { state.day = 0; renderText(); fitQuote(); });
-  els.tabYday.addEventListener('click', () => { state.day = 1; renderText(); fitQuote(); });
   els.openSheet.addEventListener('click', openSheet);
   $('closeSheet').addEventListener('click', closeSheet);
   $('scrim').addEventListener('click', closeSheet);
@@ -555,10 +589,16 @@
   fillPickers();
   buildLists();
   renderText();
+  const firstLoad = loadDay();
+  watchMidnight();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDate(); });
 
   let resizeT = 0;
   window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(layout, 120); });
 
-  const start = () => { layout(); renderSky(true); };
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+  const start = () => { layout(); started = true; renderSky(true); };
+  Promise.all([
+    document.fonts ? document.fonts.ready : null,
+    Promise.race([firstLoad, new Promise((r) => setTimeout(r, 3000))])
+  ]).then(start);
 })();

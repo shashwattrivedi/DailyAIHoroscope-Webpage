@@ -1,0 +1,16 @@
+{
+  "name": "dailyaihoroscope-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-06",
+  "observability": { "enabled": true },
+  "ai": { "binding": "AI" },
+  "kv_namespaces": [
+    { "binding": "HOROSCOPES", "id": "0ae329380abe4bb7ba3cc93d77634c9b" }
+  ],
+  "vars": {
+    "MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+  },
+  // Every 3 hours; only missing dates are generated. A new date starts at 10:00 UTC
+  // (00:00 in UTC+14), so the 06:00 and 09:00 runs prepare it in advance.
+  "triggers": { "crons": ["0 */3 * * *"] }
+}

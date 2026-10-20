@@ -25,10 +25,22 @@ Glider.js : [GitHub - NickPiscitelli/Glider.js: A fast, lightweight, dependency 
 
 # Structure
 
-- `index.html`: the daily card (one screen, no scroll). The daily job writes the 12 lines into the hidden `#horoscopeDataToday` and `#horoscopeDataYesterday` divs as `Sign: text::` lines (sign keys `Aries` … `Scorpius`, `Capricornus` …).
-- `purpose.html`: why the site exists (Barnum effect). Its "Try it" section reads today's lines from `index.html`; `#tweetIds` takes comma-separated tweet IDs.
+- `index.html`: the daily card (one screen, no scroll). It shows the lines for the visitor's own local date and switches to the next set at local midnight.
+- `purpose.html`: why the site exists (Barnum effect). "Try it" uses the same day's lines; `#tweetIds` takes comma-separated tweet IDs.
 - `js/app.js`: rendering, constellation animation, planets, parallax, share and save-as-image.
 - `js/constellations.js`: constellation figures. `js/signs.js`: signs, dates and colours.
 - `js/astronomy.browser.min.js`: [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT), used for today's planet positions.
+- `worker/`: the Cloudflare Worker that writes the horoscopes (see below).
 
-It is a static site with no build step, so any static host works (GitHub Pages, Cloudflare Pages, …).
+The site itself is static with no build step. The API address is in the `horoscope-api` meta tag of both pages.
+
+# Daily horoscopes (worker/)
+
+A Cloudflare Worker writes 12 lines per calendar date with Workers AI and stores them in KV.
+
+- A date starts at 00:00 in UTC+14 (the first time zone) and ends at 24:00 in UTC-12, so everyone gets the lines for their own local date.
+- A cron runs every 3 hours and only generates missing dates. A new date starts at 10:00 UTC, so the 06:00 and 09:00 UTC runs prepare it ahead of time. If a date is ever missing, the first request for it generates it.
+- Each sign gets two random moods; the lines ignore the sign's traditional traits.
+- `GET /v1/horoscope?date=YYYY-MM-DD` returns `{ date, signs: { Aries: "...", ... } }`. Dates that have not started anywhere yet return 404.
+
+Deploy: `cd worker && npx wrangler deploy`. The model is set by `MODEL` in `worker/wrangler.jsonc`.
