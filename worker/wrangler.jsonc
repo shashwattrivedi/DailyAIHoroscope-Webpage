@@ -7,10 +7,14 @@
   "kv_namespaces": [
     { "binding": "HOROSCOPES", "id": "0ae329380abe4bb7ba3cc93d77634c9b" }
   ],
+  // Public bucket with the published day files (data/YYYY-MM-DD.json), served by the CDN.
+  "r2_buckets": [
+    { "binding": "DATA", "bucket_name": "dailyaihoroscope-data" }
+  ],
   "vars": {
     "MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
   },
-  // Every 3 hours; only missing dates are generated. A new date starts at 10:00 UTC
-  // (00:00 in UTC+14), so the 06:00 and 09:00 runs prepare it in advance.
-  "triggers": { "crons": ["0 */3 * * *"] }
+  // Hourly; only missing dates are generated. A new date starts at 10:00 UTC (00:00 in
+  // UTC+14): it is generated from 04:00 and published to R2 by the 10:00 run.
+  "triggers": { "crons": ["0 * * * *"] }
 }

@@ -16,7 +16,6 @@
     sheet: $('sheet'), tiles: $('tiles'), openSheet: $('openSheet')
   };
 
-  const API = document.querySelector('meta[name="horoscope-api"]').content;
   let now = new Date();
   // Lines for the visitor's own calendar date; null while loading.
   let lines = null;
@@ -41,16 +40,10 @@
     return lines[dataKey(SIGNS[i])] || 'Today’s lines are still being written. Check back in a minute.';
   }
 
-  const localDate = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-
   // Everyone sees the lines for their own date: a new set appears at local midnight.
   async function loadDay() {
     const date = localDate(now);
-    let got = {};
-    try {
-      const res = await fetch(API + '/v1/horoscope?date=' + date);
-      if (res.ok) got = (await res.json()).signs || {};
-    } catch (e) {}
+    const got = await fetchHoroscope(date);
     if (date !== localDate(now)) return;
     lines = got;
     cards.clear();

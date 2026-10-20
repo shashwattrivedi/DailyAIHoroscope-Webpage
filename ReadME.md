@@ -39,8 +39,10 @@ The site itself is static with no build step. The API address is in the `horosco
 A Cloudflare Worker writes 12 lines per calendar date with Workers AI and stores them in KV.
 
 - A date starts at 00:00 in UTC+14 (the first time zone) and ends at 24:00 in UTC-12, so everyone gets the lines for their own local date.
-- A cron runs every 3 hours and only generates missing dates. A new date starts at 10:00 UTC, so the 06:00 and 09:00 UTC runs prepare it ahead of time. If a date is ever missing, the first request for it generates it.
+- A cron runs hourly and only generates missing dates, up to 6 hours before they start. Lines wait in KV (private) until the date starts (10:00 UTC), then the cron copies them to the public R2 bucket `dailyaihoroscope-data` as `data/YYYY-MM-DD.json`.
+- Visitors load that file from the CDN, so the Worker isn't called at all. The page only falls back to the Worker API if the file is missing; if a date is missing everywhere, the first request generates it.
+- The file's address is the `horoscope-data` meta tag (the bucket's public domain). While it is empty, pages use the API.
 - Each sign gets two random moods; the lines ignore the sign's traditional traits.
 - `GET /v1/horoscope?date=YYYY-MM-DD` returns `{ date, signs: { Aries: "...", ... } }`. Dates that have not started anywhere yet return 404.
 
-Deploy: `cd worker && npx wrangler deploy`. The model is set by `MODEL` in `worker/wrangler.jsonc`.
+Deploy: `cd worker && npx wrangler deploy`. Bucket CORS: `npx wrangler r2 bucket cors set dailyaihoroscope-data --file r2-cors.json`. The model is set by `MODEL` in `worker/wrangler.jsonc`.

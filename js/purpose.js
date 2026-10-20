@@ -2,18 +2,6 @@
   const $ = (id) => document.getElementById(id);
   const picked = {};
 
-  // Today's lines for the visitor's own date, from the daily Worker.
-  async function loadLines() {
-    const d = new Date();
-    const date = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-    try {
-      const api = document.querySelector('meta[name="horoscope-api"]').content;
-      const res = await fetch(api + '/v1/horoscope?date=' + date);
-      if (res.ok) return (await res.json()).signs || {};
-    } catch (e) {}
-    return {};
-  }
-
   function renderLines(lines) {
     const box = $('lines');
     box.innerHTML = '';
@@ -64,6 +52,6 @@
   }
 
   renderLines({});
-  loadLines().then(renderLines);
+  fetchHoroscope(localDate(new Date())).then(renderLines);
   loadTweets();
 })();

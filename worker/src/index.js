@@ -5,6 +5,10 @@
 // "today" until 24:00 in UTC-12, so a visitor anywhere sees the lines for their own
 // local date. The cron makes sure every date that is current somewhere (plus the next
 // one) is generated before anyone needs it.
+//
+// Lines are written ahead of time into KV (private). Once a date has started, the cron
+// copies it to the public R2 bucket as data/YYYY-MM-DD.json, which the CDN serves to
+// visitors without running this Worker. /v1/horoscope is only the fallback.
 
 const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpius', 'Sagittarius', 'Capricornus', 'Aquarius', 'Pisces'];
 const FIRST_TZ = 14; // hours ahead of UTC
@@ -92,6 +96,15 @@ async function ensure(env, date) {
   return made;
 }
 
+// A day's lines never change once written, so the CDN may keep the file for a week.
+async function publish(env, day) {
+  const key = 'data/' + day.date + '.json';
+  if (await env.DATA.head(key)) return;
+  await env.DATA.put(key, JSON.stringify({ date: day.date, signs: day.signs }), {
+    httpMetadata: { contentType: 'application/json; charset=utf-8', cacheControl: 'public, max-age=604800, immutable' }
+  });
+}
+
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS'
@@ -100,7 +113,7 @@ const json = (body, status = 200, extra = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors, ...extra } });
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     if (req.method === 'OPTIONS') return new Response(null, { headers: cors });
     const url = new URL(req.url);
 
@@ -114,6 +127,7 @@ export default {
       // Backstop if the cron missed: generate on demand, but only for dates that are current.
       if (!day && date >= first) {
         try { day = await ensure(env, date); } catch (e) { return json({ error: 'Not ready yet, try again shortly.' }, 503); }
+        ctx.waitUntil(publish(env, day));
       }
       if (!day) return json({ error: 'No horoscope for this date.' }, 404);
       const settled = date < first; // no longer "today" anywhere, will never change
@@ -124,11 +138,15 @@ export default {
     return json({ error: 'Not found' }, 404);
   },
 
-  // Runs every few hours; only generates dates that are missing.
+  // Hourly: generate any missing date (up to 6 hours before it starts), and publish
+  // each date that has started to R2.
   async scheduled(event, env, ctx) {
     const now = Date.now();
-    const [first] = window_(now);
-    const [, ahead] = window_(now + 6 * 3600000); // the next date, before it starts in UTC+14
-    for (const date of datesBetween(first, ahead)) await ensure(env, date);
+    const [first, last] = window_(now);
+    const [, ahead] = window_(now + 6 * 3600000);
+    for (const date of datesBetween(first, ahead)) {
+      const day = await ensure(env, date);
+      if (date <= last) await publish(env, day);
+    }
   }
 };

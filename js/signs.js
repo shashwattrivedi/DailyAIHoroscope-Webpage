@@ -34,3 +34,21 @@ function signIndex(m, d) {
 function dataKey(sign) {
   return sign.key.charAt(0).toUpperCase() + sign.key.slice(1);
 }
+
+const localDate = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+// The day's lines are a static file on the CDN (horoscope-data, published by the
+// Worker once the date starts). The Worker API is only the fallback.
+async function fetchHoroscope(date) {
+  const meta = (name) => (document.querySelector('meta[name="' + name + '"]') || {}).content;
+  const tries = [];
+  if (meta('horoscope-data')) tries.push(meta('horoscope-data') + '/data/' + date + '.json');
+  tries.push(meta('horoscope-api') + '/v1/horoscope?date=' + date);
+  for (const url of tries) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) return (await res.json()).signs || {};
+    } catch (e) {}
+  }
+  return {};
+}

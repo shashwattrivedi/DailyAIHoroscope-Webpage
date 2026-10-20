@@ -1,0 +1,5 @@
+{
+  "rules": [
+    { "allowed": { "origins": ["*"], "methods": ["GET", "HEAD"] }, "maxAgeSeconds": 86400 }
+  ]
+}
