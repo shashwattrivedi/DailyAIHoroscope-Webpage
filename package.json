@@ -1,0 +1,11 @@
+{
+  "name": "dailyaihoroscope-webpage",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "23.11.1"
+  }
+}

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Used by build.mjs (in headless Chrome) to draw the 1200x630 link-preview image
+     for each sign. Same look as the share card in js/app.js, laid out landscape. -->
+<head>
+  <meta charset="UTF-8" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&family=Space+Mono:wght@700&display=block" rel="stylesheet" />
+</head>
+<body>
+  <script src="../js/signs.js"></script>
+  <script src="../js/constellations.js"></script>
+  <script>
+    function seeded(n, w, h) {
+      let s = 7;
+      const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+      return Array.from({ length: n }, () => ({ x: r() * w, y: r() * h, r: 0.6 + r() * 1.4, o: 0.35 + r() * 0.6 }));
+    }
+
+    function wrap(ctx, text, maxW) {
+      const words = text.split(' '), out = [];
+      let line = '';
+      words.forEach((w) => {
+        const t = line ? line + ' ' + w : w;
+        if (ctx.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t;
+      });
+      if (line) out.push(line);
+      return out;
+    }
+
+    // date: 'WED 21 OCT'; line may be empty (then a generic tagline is shown).
+    window.drawOG = async function (key, date, line, site) {
+      const s = SIGNS.find((x) => x.key === key), c = window.CONSTELLATIONS[key];
+      const W = 1200, H = 630, P = 64;
+      await Promise.all(['800 34px Outfit', '900 120px Outfit', '700 24px "Space Mono"'].map((f) => document.fonts.load(f)));
+      const cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d');
+
+      ctx.fillStyle = s.color;
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#FFFFFF';
+      seeded(70, W, H).forEach((f) => { ctx.globalAlpha = f.o; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 1.5, 0, 7); ctx.fill(); });
+      ctx.globalAlpha = 1;
+
+      const [vx, vy, vw, vh] = c.vb;
+      const area = { x: 620, y: 40, w: 540, h: 550 };
+      const k = Math.min(area.w / vw, area.h / vh);
+      const ox = area.x + (area.w - vw * k) / 2 - vx * k, oy = area.y + (area.h - vh * k) / 2 - vy * k;
+      ctx.shadowColor = 'rgba(255,255,255,0.8)';
+      ctx.shadowBlur = 12;
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = Math.max(2, 3 * k);
+      ctx.lineCap = 'round';
+      c.l.forEach((l) => { ctx.beginPath(); ctx.moveTo(ox + l[0] * k, oy + l[1] * k); ctx.lineTo(ox + l[2] * k, oy + l[3] * k); ctx.stroke(); });
+      c.s.forEach((p) => { ctx.beginPath(); ctx.arc(ox + p[0] * k, oy + p[1] * k, Math.max(3, p[2] * 1.2 * k), 0, 7); ctx.fill(); });
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#111111';
+      ctx.textBaseline = 'top';
+      ctx.font = '800 34px Outfit';
+      ctx.fillText('Daily AI Horoscope', P, P - 8);
+      ctx.font = '700 24px "Space Mono"';
+      const dw = ctx.measureText(date).width + 40;
+      ctx.beginPath(); ctx.roundRect(W - P - dw, P - 14, dw, 50, 25); ctx.fill();
+      ctx.fillStyle = s.color;
+      ctx.fillText(date, W - P - dw + 20, P - 1);
+
+      ctx.fillStyle = '#111111';
+      ctx.font = '700 24px "Space Mono"';
+      ctx.fillText('BORN ' + s.dates, P, 160);
+      let nameSize = 120;
+      ctx.font = '900 120px Outfit';
+      while (ctx.measureText(s.name).width > 640 && nameSize > 60) ctx.font = '900 ' + (nameSize -= 4) + 'px Outfit';
+      ctx.fillText(s.name, P - 5, 192 + (120 - nameSize) * 0.6);
+
+      const text = line ? '“' + line + '”' : 'Written by AI, not the stars. Does it still feel true?';
+      let size = 52, lines;
+      do {
+        ctx.font = '800 ' + size + 'px Outfit';
+        lines = wrap(ctx, text, W - P * 2);
+        size -= 2;
+      } while (lines.length * (size + 2) * 1.12 > 210 && size > 26);
+      const lh = (size + 2) * 1.12;
+      lines.forEach((l, i) => ctx.fillText(l, P, 335 + i * lh));
+
+      ctx.font = '700 22px "Space Mono"';
+      ctx.fillText(site, P, H - P + 8);
+      return cv.toDataURL('image/png');
+    };
+  </script>
+</body>
+</html>

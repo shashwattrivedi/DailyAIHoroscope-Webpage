@@ -37,7 +37,11 @@ The pages work as they are (open `index.html` from any static server). The API a
 
 # Daily build and deploy
 
-`node scripts/build.mjs` copies the site into `dist/` with the newest date's lines written into the HTML, so search engines and link previews see them without running JavaScript. It also writes a page per sign (`/aries` … `/pisces`, each with its own title and description), `sitemap.xml`, `robots.txt`, and `_headers` (keeps the `pages.dev` copies out of search). Visitors still get their own local date: the page swaps to it on load if it differs.
+`npm install`, then `node scripts/build.mjs` copies the site into `dist/` with the newest date's lines written into the HTML, so search engines and link previews see them without running JavaScript. It also writes:
+
+- a page per sign (`/aries` … `/pisces`), each with its own title, description and structured data (JSON-LD `Article`);
+- a 1200×630 link-preview image per sign (`og/<sign>-<date>.png`), drawn by `scripts/og.html` in headless Chrome (set `CHROME_PATH` if Chrome isn't in the usual place; without Chrome the images are skipped);
+- `sitemap.xml`, `robots.txt`, and `_headers` (keeps the `pages.dev` copies out of search). Visitors still get their own local date: the page swaps to it on load if it differs.
 
 `.github/workflows/deploy.yml` runs the build and deploys `dist/` to the Cloudflare Pages project `dailyaihoroscope` on every push and daily at 10:10 UTC, just after a new date starts. It needs the repository secrets `CLOUDFLARE_API_TOKEN` (permission: Account > Cloudflare Pages > Edit) and `CLOUDFLARE_ACCOUNT_ID`.
 

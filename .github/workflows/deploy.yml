@@ -28,7 +28,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+      # puppeteer-core draws the link-preview images with the runner's Chrome.
+      - run: npm ci
       - run: node scripts/build.mjs
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
