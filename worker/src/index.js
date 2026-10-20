@@ -3,12 +3,12 @@
 // A new set of 12 lines is written for each calendar date. A date first exists at
 // 00:00 in UTC+14 (Line Islands, the first place on Earth to reach it) and is still
 // "today" until 24:00 in UTC-12, so a visitor anywhere sees the lines for their own
-// local date. The cron makes sure every date that is current somewhere (plus the next
-// one) is generated before anyone needs it.
+// local date. The daily cron writes each date as it starts and fills in any date that
+// is current somewhere and still missing.
 //
-// Lines are written ahead of time into KV (private). Once a date has started, the cron
-// copies it to the public R2 bucket as data/YYYY-MM-DD.json, which the CDN serves to
-// visitors without running this Worker. /v1/horoscope is only the fallback.
+// Lines are kept in KV (private) and published to the public R2 bucket as
+// data/YYYY-MM-DD.json, which the CDN serves to visitors without running this Worker.
+// /v1/horoscope is only the fallback.
 
 const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpius', 'Sagittarius', 'Capricornus', 'Aquarius', 'Pisces'];
 const FIRST_TZ = 14; // hours ahead of UTC
@@ -138,15 +138,10 @@ export default {
     return json({ error: 'Not found' }, 404);
   },
 
-  // Hourly: generate any missing date (up to 6 hours before it starts), and publish
-  // each date that has started to R2.
+  // Daily at 10:00 UTC: write and publish the date that just started, plus any date
+  // that is still current somewhere and missing.
   async scheduled(event, env, ctx) {
-    const now = Date.now();
-    const [first, last] = window_(now);
-    const [, ahead] = window_(now + 6 * 3600000);
-    for (const date of datesBetween(first, ahead)) {
-      const day = await ensure(env, date);
-      if (date <= last) await publish(env, day);
-    }
+    const [first, last] = window_(Date.now());
+    for (const date of datesBetween(first, last)) await publish(env, await ensure(env, date));
   }
 };

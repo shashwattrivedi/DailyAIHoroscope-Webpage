@@ -14,7 +14,7 @@
   "vars": {
     "MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
   },
-  // Hourly; only missing dates are generated. A new date starts at 10:00 UTC (00:00 in
-  // UTC+14): it is generated from 04:00 and published to R2 by the 10:00 run.
-  "triggers": { "crons": ["0 * * * *"] }
+  // Daily at 10:00 UTC, when a new date starts (00:00 in UTC+14): writes and publishes it.
+  // If this run fails, the first request for the date writes it (see fetch()).
+  "triggers": { "crons": ["0 10 * * *"] }
 }
