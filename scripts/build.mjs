@@ -89,7 +89,9 @@ const bakedScript = () => '<script id="baked" type="application/json">' + JSON.s
 function signPage(template, day, i, meta) {
   const s = SIGNS[i];
   let html = setMeta(template, meta);
-  html = replace(html, '<div class="app" id="app">', '<div class="app" id="app" data-sign="' + s.key + '" style="--bg: ' + s.color + '">');
+  // The sign colour goes on <html>, the one place app.js updates it when the sign changes.
+  html = replace(html, '<html lang="en">', '<html lang="en" style="--bg: ' + s.color + '">');
+  html = replace(html, '<div class="app" id="app">', '<div class="app" id="app" data-sign="' + s.key + '">');
   html = html.replace(/(<meta name="theme-color" content=")[^"]*/, '$1' + s.color);
   html = replace(html, '<span class="mono born" id="born"></span>', '<span class="mono born" id="born">BORN ' + s.dates + '</span>');
   html = replace(html, '<h1 id="signName"></h1>', '<h1 id="signName">' + s.name + '</h1>');
