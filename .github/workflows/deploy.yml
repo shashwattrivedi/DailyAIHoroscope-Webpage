@@ -1,7 +1,7 @@
 # Builds the site with the day's lines written into the HTML and deploys it to
-# Cloudflare Pages. Runs on every push, and daily just after a new date starts
-# (00:00 in UTC+14 = 10:00 UTC, when the Worker publishes it). The second daily run
-# is a backup in case GitHub skips or delays the first.
+# Cloudflare Pages. Runs on every push, and daily when the Worker starts it (10:00 UTC,
+# right after it publishes the new date). There is no GitHub schedule on purpose:
+# GitHub turns off scheduled workflows in a repo with no commits for 60 days.
 #
 # Needs repository secrets CLOUDFLARE_API_TOKEN (Account > Cloudflare Pages > Edit)
 # and CLOUDFLARE_ACCOUNT_ID.
@@ -11,9 +11,6 @@ name: Deploy
 on:
   push:
     branches: [main, redesign]
-  schedule:
-    - cron: '10 10 * * *'
-    - cron: '10 13 * * *'
   workflow_dispatch:
 
 concurrency:

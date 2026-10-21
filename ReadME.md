@@ -43,7 +43,7 @@ The pages work as they are (open `index.html` from any static server). The API a
 - a 1200×630 link-preview image per sign (`og/<sign>-<date>.png`), drawn by `scripts/og.html` in headless Chrome (set `CHROME_PATH` if Chrome isn't in the usual place; without Chrome the images are skipped);
 - `sitemap.xml`, `robots.txt`, and `_headers` (keeps the `pages.dev` copies out of search). Visitors still get their own local date: the page swaps to it on load if it differs.
 
-`.github/workflows/deploy.yml` runs the build and deploys `dist/` to the Cloudflare Pages project `dailyaihoroscope` on every push and daily at 10:10 UTC, just after a new date starts. It needs the repository secrets `CLOUDFLARE_API_TOKEN` (permission: Account > Cloudflare Pages > Edit) and `CLOUDFLARE_ACCOUNT_ID`.
+`.github/workflows/deploy.yml` runs the build and deploys `dist/` to the Cloudflare Pages project `dailyaihoroscope` on every push, and daily when the Worker starts it at 10:00 UTC, right after a new date starts (no GitHub schedule, because GitHub turns those off after 60 days without commits; the Worker needs the `GH_DISPATCH_TOKEN` secret, a fine-grained token for this repo with Actions: Read and write). It needs the repository secrets `CLOUDFLARE_API_TOKEN` (permission: Account > Cloudflare Pages > Edit) and `CLOUDFLARE_ACCOUNT_ID`.
 
 # Daily horoscopes (worker/)
 
@@ -66,6 +66,10 @@ At 12:00 UTC (retry 14:00), after the site build has published the day's images,
 - **Instagram**: 12 posts, one per sign, with the 1080×1350 card from `post/<sign>-<date>.jpg`.
 
 Settings are in `worker/wrangler.jsonc` (`SOCIAL` picks the platforms; `SOCIAL_DRY_RUN` is `"true"` until you want real posts, and only logs them). Keys are **Worker secrets, never in the repo**: run `npx wrangler secret put NAME` in your own terminal for each name in `worker/.dev.vars.example`. For local tests, copy that file to `worker/.dev.vars` (ignored by git) and run `npx wrangler dev --test-scheduled`, then open `/__scheduled?cron=0+10,12,14+*+*+*`.
+
+## Alerts
+
+The Worker emails `ALERT_TO` (a secret; it must be a verified Cloudflare Email Routing destination) when something needs a person: writing a day's horoscopes failed, the site has no images for the day by 14:00, a platform still failed at the 14:00 retry, or (checked daily at 10:00) the Meta or GitHub token is invalid or expires within 14 days.
 
 Each post is recorded in KV, so re-runs never post twice, and a platform that fails doesn't stop the others. Results are in the Worker's logs (`[posted]`, `[ok]`, `[failed]`).
 
