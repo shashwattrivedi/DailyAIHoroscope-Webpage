@@ -65,7 +65,7 @@ async function bluesky(c) {
   const { env } = c, host = env.BLUESKY_SERVICE || 'https://bsky.social';
   let session;
   const auth = async () => (session ??= await (await call('Bluesky login', host + '/xrpc/com.atproto.server.createSession',
-    jsonPost({ identifier: env.BLUESKY_HANDLE, password: env.BLUESKY_APP_PASSWORD }))).json());
+    jsonPost({ identifier: env.BLUESKY_HANDLE.trim().replace(/^@/, ''), password: env.BLUESKY_APP_PASSWORD.trim() }))).json());
   const post = async (record) => {
     const s = await auth();
     return (await call('Bluesky post', host + '/xrpc/com.atproto.repo.createRecord', jsonPost({
