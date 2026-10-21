@@ -1,5 +1,5 @@
-// Shares each day's lines on social media, from the Worker's posting crons (after the
-// daily site build has published that day's images).
+// Shares each day's lines on social media, from the Worker's cron (12:00 UTC, retry
+// 14:00; after the daily site build has published that day's images).
 //
 // - Which platforms: the SOCIAL var (comma-separated). A platform also needs its keys.
 // - Keys are Worker secrets (`npx wrangler secret put NAME`), never in the repo; for

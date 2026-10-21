@@ -13,7 +13,6 @@
 import { share } from './social.js';
 
 const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpius', 'Sagittarius', 'Capricornus', 'Aquarius', 'Pisces'];
-const GENERATE = '0 10 * * *'; // must match the first cron in wrangler.jsonc
 const FIRST_TZ = 14; // hours ahead of UTC
 const LAST_TZ = -12;
 const DAY = 86400000;
@@ -153,15 +152,17 @@ export default {
     return json({ error: 'Not found' }, 404);
   },
 
-  // 10:00 UTC: write and publish the date that just started, plus any date that is
-  // still current somewhere and missing. The later crons (10:30, retry 12:30) share it
-  // on social media once the site build has published its images (see social.js).
+  // Runs at 10:00, 12:00 and 14:00 UTC. Each run writes and publishes any date that is
+  // current somewhere and missing (at 10:00, the date that just started), then shares
+  // the newest date on social media. At 10:00 the site build hasn't published its
+  // images yet, so sharing waits for 12:00; 14:00 retries what didn't post.
   async scheduled(event, env, ctx) {
     const [first, last] = window_(Date.now());
-    if (event.cron === GENERATE) {
-      for (const date of datesBetween(first, last)) await ensure(env, date);
-      return;
+    for (const date of datesBetween(first, last)) await ensure(env, date);
+    try {
+      await share(env, await ensure(env, last));
+    } catch (e) {
+      console.log('[waiting] ' + e.message);
     }
-    await share(env, await ensure(env, last));
   }
 };

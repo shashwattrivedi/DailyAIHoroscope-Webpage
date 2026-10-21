@@ -58,13 +58,13 @@ A Cloudflare Worker writes 12 lines per calendar date with Workers AI and stores
 
 ## Social media (worker/src/social.js)
 
-At 10:30 UTC (retry 12:30), after the site build has published the day's images, the Worker shares the lines:
+At 12:00 UTC (retry 14:00), after the site build has published the day's images, the Worker shares the lines:
 
 - **Bluesky** and **X**: a thread (one post, then a reply per sign; on Bluesky each reply has the sign's image). `X_THREAD=false` posts only the first.
 - **Facebook**: one Page post with all 12 lines. **Reddit**: one text post in `REDDIT_SUBREDDIT`.
 - **Instagram**: 12 posts, one per sign, with the 1080×1350 card from `post/<sign>-<date>.jpg`.
 
-Settings are in `worker/wrangler.jsonc` (`SOCIAL` picks the platforms; `SOCIAL_DRY_RUN` is `"true"` until you want real posts, and only logs them). Keys are **Worker secrets, never in the repo**: run `npx wrangler secret put NAME` in your own terminal for each name in `worker/.dev.vars.example`. For local tests, copy that file to `worker/.dev.vars` (ignored by git) and run `npx wrangler dev --test-scheduled`, then open `/__scheduled?cron=30+10,12+*+*+*`.
+Settings are in `worker/wrangler.jsonc` (`SOCIAL` picks the platforms; `SOCIAL_DRY_RUN` is `"true"` until you want real posts, and only logs them). Keys are **Worker secrets, never in the repo**: run `npx wrangler secret put NAME` in your own terminal for each name in `worker/.dev.vars.example`. For local tests, copy that file to `worker/.dev.vars` (ignored by git) and run `npx wrangler dev --test-scheduled`, then open `/__scheduled?cron=0+10,12,14+*+*+*`.
 
 Each post is recorded in KV, so re-runs never post twice, and a platform that fails doesn't stop the others. Results are in the Worker's logs (`[posted]`, `[ok]`, `[failed]`).
 

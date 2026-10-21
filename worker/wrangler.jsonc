@@ -25,10 +25,9 @@
     "REDDIT_SUBREDDIT": "",
     "META_GRAPH_VERSION": "v23.0"
   },
-  // 10:00 UTC, when a new date starts (00:00 in UTC+14): writes and publishes it. If this
-  // run fails, the first request for the date writes it (see fetch()).
-  // 10:30 and 12:30 UTC: share it on social media (after the 10:10 site build); the
-  // second run only retries what didn't post. One cron for both: the Free plan allows
-  // 5 per account.
-  "triggers": { "crons": ["0 10 * * *", "30 10,12 * * *"] }
+  // One cron (the Free plan allows 5 per account). 10:00 UTC, when a new date starts
+  // (00:00 in UTC+14): writes and publishes it; if this run fails, the first request for
+  // the date writes it (see fetch()). 12:00 UTC: shares it on social media, after the
+  // 10:10 site build has published the images. 14:00 UTC: retries what didn't post.
+  "triggers": { "crons": ["0 10,12,14 * * *"] }
 }
