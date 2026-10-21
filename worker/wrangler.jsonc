@@ -17,9 +17,9 @@
     "MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     "SITE": "https://dailyaihoroscope.com",
     // Platforms to post to: bluesky, x, facebook, instagram, reddit.
-    "SOCIAL": "bluesky,x,facebook,instagram,reddit",
+    "SOCIAL": "bluesky",
     // "true": only log what would be posted. Set to "false" to post for real.
-    "SOCIAL_DRY_RUN": "true",
+    "SOCIAL_DRY_RUN": "false",
     // "false": post only the first X post, not the 12 replies (the free X API tier allows few posts).
     "X_THREAD": "true",
     "REDDIT_SUBREDDIT": "",
