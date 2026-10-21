@@ -40,12 +40,14 @@ const signSlug = (sign) => sign.name.toLowerCase();
 
 const localDate = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 
-// The daily build writes the newest date's lines into the page itself (#baked), so
-// crawlers and link previews see them. Returns them if they are for this date.
+// The daily build writes the lines into the page itself (#baked) for every date that is
+// "today" somewhere, so visitors in any timezone need no request (and crawlers and link
+// previews see them). Returns this date's lines if they are there.
 function bakedLines(date) {
   try {
     const b = JSON.parse(document.getElementById('baked').textContent);
-    if (b.date === date) return b.signs;
+    if (b.signs) return b.date === date ? b.signs : null; // older pages: { date, signs }
+    return b[date] || null;
   } catch (e) {}
   return null;
 }

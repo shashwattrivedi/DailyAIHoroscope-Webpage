@@ -15,7 +15,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'dist');
 const SITE = (process.env.SITE_URL || 'https://dailyaihoroscope.com').replace(/\/$/, '');
-const COPY = ['css', 'js', 'media'];
+const COPY = ['css', 'js', 'media', 'fonts'];
 
 const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const write = (f, text) => fs.writeFileSync(path.join(OUT, f), text);
@@ -28,19 +28,25 @@ vm.runInNewContext(read('js/signs.js') + '\nthis.SIGNS = SIGNS; this.signIndex =
 const { SIGNS, signIndex, dataKey } = ctx;
 const slug = (s) => s.name.toLowerCase();
 
-// The newest date that has started (00:00 in UTC+14); fall back a day if it isn't ready.
+// Every date that is "today" somewhere on Earth (UTC-12 to UTC+14: two or three dates),
+// newest first, so every visitor finds their own date baked into the page until the
+// next daily build. Only the given date when one is passed.
 async function lines(date) {
   const api = read('index.html').match(/name="horoscope-api" content="([^"]+)"/)[1];
-  for (const d of date ? [date] : [ymd(Date.now() + 14 * 3600000), ymd(Date.now() - 10 * 3600000)]) {
+  const dates = [];
+  if (date) dates.push(date);
+  else for (let t = Date.now() + 14 * 3600000; ymd(t) >= ymd(Date.now() - 12 * 3600000); t -= 86400000) dates.push(ymd(t));
+  const out = [];
+  for (const d of dates) {
     try {
       const res = await fetch(api + '/v1/horoscope?date=' + d);
-      if (res.ok) return { date: d, signs: (await res.json()).signs };
-      console.warn('No lines for ' + d + ': HTTP ' + res.status);
+      if (res.ok) out.push({ date: d, signs: (await res.json()).signs });
+      else console.warn('No lines for ' + d + ': HTTP ' + res.status);
     } catch (e) {
       console.warn('No lines for ' + d + ': ' + e.message);
     }
   }
-  return null;
+  return out;
 }
 
 function replace(html, find, to) {
@@ -77,7 +83,8 @@ function setMeta(html, { title, description, url, image, ld = [] }) {
   return html.replace(/href="index\.html"/g, 'href="/"').replace(/href="purpose\.html"/g, 'href="/purpose"');
 }
 
-const bakedScript = (day) => '<script id="baked" type="application/json">' + JSON.stringify(day).replace(/</g, '\\u003c') + '</script>\n  ';
+// { "YYYY-MM-DD": { Aries: '…', … }, … } for every baked date (see lines()).
+const bakedScript = () => '<script id="baked" type="application/json">' + JSON.stringify(baked).replace(/</g, '\\u003c') + '</script>\n  ';
 
 function signPage(template, day, i, meta) {
   const s = SIGNS[i];
@@ -88,7 +95,7 @@ function signPage(template, day, i, meta) {
   html = replace(html, '<h1 id="signName"></h1>', '<h1 id="signName">' + s.name + '</h1>');
   if (day) {
     html = replace(html, '<blockquote class="quote layer" id="quote"></blockquote>', '<blockquote class="quote layer" id="quote">“' + esc(day.signs[dataKey(s)]) + '”</blockquote>');
-    html = replace(html, '<script src="js/astronomy.browser.min.js">', bakedScript(day) + '<script src="js/astronomy.browser.min.js">');
+    html = replace(html, '<script src="js/astronomy.browser.min.js">', bakedScript() + '<script src="js/astronomy.browser.min.js">');
   }
   return html;
 }
@@ -121,7 +128,10 @@ async function drawImages(date, lineOf) {
   }
 }
 
-const day = await lines(process.argv[2]);
+// The newest date is "today" for the visible text, meta tags and images.
+const days = await lines(process.argv[2]);
+const day = days[0] || null;
+const baked = Object.fromEntries(days.map((d) => [d.date, d.signs]));
 if (!day) console.warn('Building without lines; pages will load them in the browser.');
 const date = day ? day.date : ymd(Date.now());
 const shown = new Date(date + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -172,7 +182,7 @@ if (day) {
   const buttons = SIGNS.map((s) => '<button type="button" class="line" style="--c: ' + s.color + '" aria-pressed="false"><span class="line-sign">' +
     s.glyph + ' ' + s.name.toUpperCase() + '</span><span class="line-text">' + esc(day.signs[dataKey(s)]) + '</span></button>').join('');
   purpose = replace(purpose, '<div class="lines" id="lines"></div>', '<div class="lines" id="lines">' + buttons + '</div>');
-  purpose = replace(purpose, '<script src="js/signs.js">', bakedScript(day) + '<script src="js/signs.js">');
+  purpose = replace(purpose, '<script src="js/signs.js">', bakedScript() + '<script src="js/signs.js">');
 }
 write('purpose.html', purpose);
 
@@ -182,6 +192,8 @@ write('sitemap.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="htt
   urls.map((u) => '  <url><loc>' + SITE + (u === '/' ? '/' : u) + '</loc><lastmod>' + lastmod + '</lastmod><changefreq>daily</changefreq></url>').join('\n') + '\n</urlset>\n');
 write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE + '/sitemap.xml\n');
 // Keep the pages.dev copies out of search results; the real address is SITE.
-write('_headers', 'https://:project.pages.dev/*\n  X-Robots-Tag: noindex\n\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n');
+write('_headers', 'https://:project.pages.dev/*\n  X-Robots-Tag: noindex\n\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n\n' +
+  // The font files never change, so browsers can keep them without asking again.
+  '/fonts/*\n  Cache-Control: public, max-age=31536000, immutable\n');
 
-console.log('Built dist/ for ' + (day ? day.date : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 24 images' : '') + ')');
+console.log('Built dist/ for ' + (day ? Object.keys(baked).join(', ') : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 24 images' : '') + ')');
