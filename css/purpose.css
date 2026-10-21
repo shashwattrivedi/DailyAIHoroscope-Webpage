@@ -115,6 +115,14 @@ p { margin: 0; }
 .btn.outline { border: 2px solid #111111; color: #111111; }
 .btn.outline:hover { background: rgba(17, 17, 17, .08); color: #111111; }
 
+.tally { flex: 1 1 100%; display: flex; flex-direction: column; gap: 12px; padding-top: 20px; border-top: 1px solid rgba(17, 17, 17, .2); }
+.tally-head { font-weight: 800; font-size: 20px; }
+.tally-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.tally-list a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 2px solid #111111; color: #111111; text-decoration: none; font-weight: 700; font-size: 15px; }
+.tally-list a:hover { background: rgba(17, 17, 17, .08); }
+.tally-list b { font-weight: 900; }
+.tally-time { font-family: 'Space Mono', ui-monospace, monospace; font-weight: 700; font-size: 12px; letter-spacing: .06em; opacity: .7; }
+
 .stories { padding: 0 0 56px; display: flex; flex-direction: column; gap: 20px; }
 .tweet-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; align-items: start; }
 

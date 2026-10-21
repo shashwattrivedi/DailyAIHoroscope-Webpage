@@ -12,6 +12,7 @@
 
 import { share } from './social.js';
 import { buildSite, imagesLive, checkTokens, alert } from './ops.js';
+import { updateStats } from './stats.js';
 
 const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpius', 'Sagittarius', 'Capricornus', 'Aquarius', 'Pisces'];
 const FIRST_TZ = 14; // hours ahead of UTC
@@ -159,6 +160,7 @@ export default {
   // 2. If the site doesn't have that date's images yet, starts the site build (10:00,
   //    and again at 12:00 if the first build didn't land).
   // 3. From 12:00, shares it on social media; 14:00 retries what didn't post.
+  // 4. Updates the hashtag counts on the purpose page (stats.js).
   // Anything that is still wrong is emailed: failures that a later run can't fix, and
   // (at 10:00) keys that are invalid or about to expire.
   async scheduled(event, env, ctx) {
@@ -182,6 +184,7 @@ export default {
       }
     }
 
+    await updateStats(env, now).catch((e) => console.log('[stats] ' + e.message));
     if (hour === 10) problems.push(...(await checkTokens(env, now)));
     if (problems.length) await alert(env, 'Daily AI Horoscope: ' + problems.length + ' problem' + (problems.length > 1 ? 's' : '') + ' (' + last + ')', problems);
   }
