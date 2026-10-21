@@ -115,13 +115,18 @@ p { margin: 0; }
 .btn.outline { border: 2px solid #111111; color: #111111; }
 .btn.outline:hover { background: rgba(17, 17, 17, .08); color: #111111; }
 
-.tally { flex: 1 1 100%; display: flex; flex-direction: column; gap: 12px; padding-top: 20px; border-top: 1px solid rgba(17, 17, 17, .2); }
-.tally-head { font-weight: 800; font-size: 20px; }
-.tally-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.tally-list a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 2px solid #111111; color: #111111; text-decoration: none; font-weight: 700; font-size: 15px; }
-.tally-list a:hover { background: rgba(17, 17, 17, .08); }
-.tally-list b { font-weight: 900; }
-.tally-time { font-family: 'Space Mono', ui-monospace, monospace; font-weight: 700; font-size: 12px; letter-spacing: .06em; opacity: .7; }
+.read { position: relative; }
+.read summary { list-style: none; cursor: pointer; gap: 10px; }
+.read summary::-webkit-details-marker { display: none; }
+.read summary::after { content: ''; width: 8px; height: 8px; border: solid #111111; border-width: 0 2px 2px 0; transform: translateY(-2px) rotate(45deg); transition: transform .2s; }
+.read[open] summary::after { transform: translateY(2px) rotate(-135deg); }
+.read-total { min-width: 28px; height: 28px; padding: 0 8px; border-radius: 999px; background: #111111; color: #FF6BB5; font-size: 14px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; }
+.read-menu { position: absolute; z-index: 5; top: calc(100% + 8px); left: 0; min-width: 240px; padding: 8px; border-radius: 20px; background: #111111; box-shadow: 0 12px 32px rgba(0, 0, 0, .35); }
+.read-menu ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.read-menu a { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 44px; padding: 0 14px; border-radius: 12px; color: #F5F3EE; text-decoration: none; font-weight: 700; font-size: 16px; }
+.read-menu a:hover, .read-menu a:focus-visible { background: rgba(255, 255, 255, .08); }
+.read-menu b { font-weight: 900; color: #FF6BB5; }
+.felt .read-time { padding: 8px 14px 6px; font-family: 'Space Mono', ui-monospace, monospace; font-weight: 700; font-size: 11px; letter-spacing: .06em; color: #A9A69F; }
 
 .stories { padding: 0 0 56px; display: flex; flex-direction: column; gap: 20px; }
 .tweet-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; align-items: start; }

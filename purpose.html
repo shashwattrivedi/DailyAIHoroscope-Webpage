@@ -105,13 +105,21 @@
       </div>
       <div class="felt-actions">
         <a class="btn dark" href="https://twitter.com/intent/tweet?hashtags=DailyAIHoroscopeWasCorrect">Share your story</a>
-        <a class="btn outline" href="https://twitter.com/hashtag/DailyAIHoroscopeWasCorrect">Read stories</a>
-      </div>
-      <!-- Filled from data/stats.json (worker/src/stats.js); stays hidden without it. -->
-      <div class="tally" id="tally" hidden>
-        <p class="tally-head" id="tallyHead"></p>
-        <ul class="tally-list" id="tallyList"></ul>
-        <p class="tally-time" id="tallyTime"></p>
+        <!-- The hashtag page on each platform. Counts come from data/stats.json
+             (worker/src/stats.js); without it the links still work, just without numbers. -->
+        <details class="read" id="read">
+          <summary class="btn outline">Read stories<b class="read-total" id="readTotal" hidden></b></summary>
+          <div class="read-menu">
+            <ul>
+            <li><a href="https://bsky.app/hashtag/DailyAIHoroscopeWasCorrect" rel="noopener">Bluesky<b data-count="bluesky"></b></a></li>
+            <li><a href="https://www.instagram.com/explore/tags/dailyaihoroscopewascorrect/" rel="noopener">Instagram<b data-count="instagram"></b></a></li>
+            <li><a href="https://x.com/hashtag/DailyAIHoroscopeWasCorrect" rel="noopener">X<b data-count="x"></b></a></li>
+            <li><a href="https://www.facebook.com/hashtag/dailyaihoroscopewascorrect" rel="noopener">Facebook<b data-count="facebook"></b></a></li>
+            <li><a href="https://www.reddit.com/search/?q=%23DailyAIHoroscopeWasCorrect" rel="noopener">Reddit<b data-count="reddit"></b></a></li>
+            </ul>
+            <p class="read-time" id="readTime" hidden></p>
+          </div>
+        </details>
       </div>
     </section>
 

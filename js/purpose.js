@@ -51,9 +51,8 @@
     document.body.appendChild(s);
   }
 
-  // Posts with the hashtag per platform, counted by the Worker (worker/src/stats.js).
-  // A platform it can't count shows "—"; without the file the block stays hidden.
-  const PLATFORMS = [['bluesky', 'Bluesky'], ['instagram', 'Instagram'], ['x', 'X'], ['facebook', 'Facebook'], ['reddit', 'Reddit']];
+  // "Read stories": the hashtag page on each platform, with the number of posts the
+  // Worker has counted (worker/src/stats.js). A platform it can't count shows "—".
   async function loadStats() {
     const base = (document.querySelector('meta[name="horoscope-data"]') || {}).content;
     if (!base) return;
@@ -63,26 +62,21 @@
       if (!res.ok) return;
       st = await res.json();
     } catch (e) { return; }
-    $('tallyHead').textContent = st.total > 0
-      ? st.total + (st.total === 1 ? ' story' : ' stories') + ' shared so far' + (st.week ? ', ' + st.week + ' this week' : '') + '.'
-      : 'No stories yet. Be the first to share one.';
-    const list = $('tallyList');
-    list.innerHTML = '';
-    PLATFORMS.forEach(([key, name]) => {
-      const p = (st.platforms || {})[key];
-      if (!p) return;
-      const li = document.createElement('li'), a = document.createElement('a'), b = document.createElement('b');
-      a.href = p.link;
-      a.rel = 'noopener';
-      b.textContent = p.count == null ? '—' : p.count;
-      a.append(name + ' ', b);
-      a.title = p.count == null ? 'Not counted yet; read the posts on ' + name : p.count + ' on ' + name;
-      li.append(a);
-      list.append(li);
+    document.querySelectorAll('#read [data-count]').forEach((b) => {
+      const p = (st.platforms || {})[b.dataset.count];
+      b.textContent = !p || p.count == null ? '—' : p.count;
     });
-    $('tallyTime').textContent = 'UPDATED ' + new Date(st.updated).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase();
-    $('tally').hidden = false;
+    $('readTotal').textContent = st.total;
+    $('readTotal').hidden = false;
+    $('readTotal').title = st.total + (st.total === 1 ? ' story' : ' stories') + ' shared so far';
+    $('readTime').textContent = 'UPDATED ' + new Date(st.updated).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).toUpperCase();
+    $('readTime').hidden = false;
   }
+
+  // Close the menu on Escape or a click elsewhere.
+  const read = $('read');
+  document.addEventListener('click', (e) => { if (read.open && !read.contains(e.target)) read.open = false; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && read.open) { read.open = false; read.querySelector('summary').focus(); } });
 
   const today = localDate(new Date());
   const baked = bakedLines(today);
