@@ -6,7 +6,7 @@
 //   local testing put them in worker/.dev.vars, which git ignores.
 // - SOCIAL_DRY_RUN is "true" until you switch it off: posts are only logged.
 // - Each post is recorded in KV (posted:<date>:<part>), so a re-run never posts twice
-//   and a thread that broke halfway continues where it stopped.
+//   and a run that broke halfway continues where it stopped.
 // - Platforms run independently; one failing doesn't stop the others.
 
 const SIGNS = [
@@ -59,6 +59,8 @@ function facets(text) {
   return out;
 }
 
+const BLUESKY_GAP = 30000; // ms between sign posts; 12 posts take about 6 minutes
+
 async function bluesky(c) {
   const { env } = c, host = env.BLUESKY_SERVICE || 'https://bsky.social';
   let session;
@@ -73,21 +75,25 @@ async function bluesky(c) {
   };
   const upload = async (url) => {
     const img = await call('Image ' + url, url), s = await auth();
+    if (!/^image\//.test(img.headers.get('content-type') || '')) throw new Error('Not an image: ' + url);
     return (await (await call('Bluesky upload', host + '/xrpc/com.atproto.repo.uploadBlob', {
       method: 'POST', headers: { 'Content-Type': img.headers.get('content-type') || 'image/png', Authorization: 'Bearer ' + s.accessJwt }, body: await img.arrayBuffer()
     })).json()).blob;
   };
-  const ref = (p) => ({ uri: p.uri, cid: p.cid });
-
-  const rootText = c.rootText;
-  const root = await c.once('bluesky:root', rootText, () => post({ text: rootText }));
-  let parent = root;
+  // One post per sign (each can be liked, reposted and found on its own), with the tall
+  // 4:5 card, a little apart so they don't land in followers' feeds as one block.
+  let gap = false;
   for (const s of SIGNS) {
-    const text = fit((l) => s.glyph + ' ' + s.name + ' · ' + c.short + '\n“' + l + '”\n' + c.site + '/' + s.slug, c.line(s), 300, graphemes);
-    parent = await c.once('bluesky:' + s.slug, text, async () => post({
-      text, reply: { root: ref(root), parent: ref(parent) },
-      embed: { $type: 'app.bsky.embed.images', images: [{ image: await upload(c.image('og', s)), alt: s.name + ': ' + c.line(s), aspectRatio: { width: 1200, height: 630 } }] }
-    }));
+    const text = fit((l) => s.glyph + ' ' + s.name + ' · ' + c.short + '\n\n“' + l + '”\n\nWritten by AI, not the stars. #' + s.name + ' #horoscope\n' +
+      c.site + '/' + s.slug, c.line(s), 300, graphemes);
+    await c.once('bluesky:' + s.slug, text, async () => {
+      if (gap) await sleep(BLUESKY_GAP);
+      gap = true;
+      return post({
+        text,
+        embed: { $type: 'app.bsky.embed.images', images: [{ image: await upload(c.image('post', s)), alt: s.name + ': ' + c.line(s), aspectRatio: { width: 1080, height: 1350 } }] }
+      });
+    });
   }
 }
 
@@ -197,17 +203,19 @@ export async function share(env, day) {
   const long = when.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
   const base = {
     env, site, date: day.date, long,
-    // First post of the Bluesky and X threads.
+    // First post of the X thread.
     rootText: 'Today’s 12 horoscopes for ' + long + '. ' + DISCLAIMER + '\n\n' + INVITE + '\n' + site,
     short: when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
     line: (s) => day.signs[s.key],
     image: (kind, s) => site + '/' + kind + '/' + s.slug + '-' + day.date + (kind === 'og' ? '.png' : '.jpg')
   };
 
-  // The posts link to the day's images, which the site build publishes after 10:00.
+  // The posts link to the day's images, which the site build publishes after 10:00. A
+  // missing file still answers 200 with the home page, so check that it is an image.
   for (const kind of ['og', 'post']) {
     const res = await fetch(base.image(kind, SIGNS[0]), { method: 'HEAD' });
-    if (!res.ok) throw new Error('Images for ' + day.date + ' are not on the site yet (' + res.status + '); the next run will try again.');
+    if (!res.ok || !/^image\//.test(res.headers.get('content-type') || ''))
+      throw new Error('Images for ' + day.date + ' are not on the site yet (' + res.status + ' ' + res.headers.get('content-type') + '); the next run will try again.');
   }
 
   const results = await Promise.allSettled(names.map(async (name) => {

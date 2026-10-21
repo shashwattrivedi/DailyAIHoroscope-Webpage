@@ -60,7 +60,8 @@ A Cloudflare Worker writes 12 lines per calendar date with Workers AI and stores
 
 At 12:00 UTC (retry 14:00), after the site build has published the day's images, the Worker shares the lines:
 
-- **Bluesky** and **X**: a thread (one post, then a reply per sign; on Bluesky each reply has the sign's image). `X_THREAD=false` posts only the first.
+- **Bluesky**: 12 separate posts, one per sign with its tall 4:5 card, 30 seconds apart.
+- **X**: a thread (one post, then a reply per sign). `X_THREAD=false` posts only the first.
 - **Facebook**: one Page post with all 12 lines. **Reddit**: one text post in `REDDIT_SUBREDDIT`.
 - **Instagram**: 12 posts, one per sign, with the 1080×1350 card from `post/<sign>-<date>.jpg`.
 
