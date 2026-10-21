@@ -63,7 +63,7 @@ At 12:00 UTC (retry 14:00), after the site build has published the day's images,
 - **Bluesky**: 12 separate posts, one per sign with its tall 4:5 card, 30 seconds apart.
 - **X**: a thread (one post, then a reply per sign). `X_THREAD=false` posts only the first.
 - **Facebook**: one Page post with all 12 lines. **Reddit**: one text post in `REDDIT_SUBREDDIT`.
-- **Instagram**: 12 posts, one per sign, with the 1080×1350 card from `post/<sign>-<date>.jpg`.
+- **Instagram**: one carousel of 13 slides: a cover (`post/cover-<date>.jpg`, "swipe to find your sign") and the 1080×1350 card of each sign (`post/<sign>-<date>.jpg`), with all 12 lines in the caption.
 
 Settings are in `worker/wrangler.jsonc` (`SOCIAL` picks the platforms; `SOCIAL_DRY_RUN` is `"true"` until you want real posts, and only logs them). Keys are **Worker secrets, never in the repo**: run `npx wrangler secret put NAME` in your own terminal for each name in `worker/.dev.vars.example`. For local tests, copy that file to `worker/.dev.vars` (ignored by git) and run `npx wrangler dev --test-scheduled`, then open `/__scheduled?cron=0+10,12,14+*+*+*`.
 

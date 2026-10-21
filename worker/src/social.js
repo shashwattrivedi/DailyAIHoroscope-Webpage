@@ -145,23 +145,35 @@ async function facebook(c) {
     (await call('Facebook post', graph(env, env.META_PAGE_ID + '/feed'), form({ message, link: c.site, access_token: env.META_PAGE_TOKEN }))).json());
 }
 
+// One carousel a day: a cover slide ("swipe to find your sign"), then the 12 sign cards,
+// with all 12 lines in the caption. Instagram fetches each image itself; every slide is
+// a container that must finish processing before the carousel can be published.
 async function instagram(c) {
-  const { env } = c, token = env.META_PAGE_TOKEN;
-  for (const s of SIGNS) {
-    const caption = s.glyph + ' ' + s.name + ' · ' + c.long + '\n\n“' + c.line(s) + '”\n\n' + DISCLAIMER + '\nAll 12 signs: ' + c.site.replace(/^https?:\/\//, '') +
-      '\n\n' + INVITE + '\n#DailyAIHoroscope #' + s.slug + ' #horoscope #zodiac #barnumeffect';
-    await c.once('instagram:' + s.slug, caption, async () => {
-      // Instagram fetches the image itself, then the container is published.
-      const box = await (await call('Instagram upload', graph(env, env.INSTAGRAM_USER_ID + '/media'), form({ image_url: c.image('post', s), caption, access_token: token }))).json();
-      for (let i = 0; i < 10; i++) {
-        const st = await (await call('Instagram status', graph(env, box.id) + '?fields=status_code&access_token=' + encodeURIComponent(token))).json();
-        if (st.status_code === 'FINISHED') break;
+  const { env } = c, token = env.META_PAGE_TOKEN, user = env.INSTAGRAM_USER_ID;
+  const head = 'Today’s 12 horoscopes for ' + c.long + ', written by an AI. Swipe to find your sign.';
+  const tail = '\n\n' + DISCLAIMER + '\nAll 12 signs: ' + c.site.replace(/^https?:\/\//, '') +
+    '\n\n' + INVITE + '\n#DailyAIHoroscope #horoscope #zodiac #barnumeffect ' + SIGNS.map((s) => '#' + s.slug).join(' ');
+  let caption = head + '\n\n' + SIGNS.map((s) => s.glyph + ' ' + s.name + ': ' + c.line(s)).join('\n') + tail;
+  if (caption.length > 2200) caption = head + tail; // Instagram's caption limit
+
+  await c.once('instagram', caption, async () => {
+    const make = async (fields) => (await call('Instagram upload', graph(env, user + '/media'), form({ ...fields, access_token: token }))).json();
+    const ready = async (id) => {
+      for (let i = 0; i < 20; i++) {
+        const st = await (await call('Instagram status', graph(env, id) + '?fields=status_code&access_token=' + encodeURIComponent(token))).json();
+        if (st.status_code === 'FINISHED') return;
         if (st.status_code === 'ERROR' || st.status_code === 'EXPIRED') throw new Error('Instagram: upload ' + st.status_code);
         await sleep(3000);
       }
-      return (await call('Instagram publish', graph(env, env.INSTAGRAM_USER_ID + '/media_publish'), form({ creation_id: box.id, access_token: token }))).json();
-    });
-  }
+      throw new Error('Instagram: upload still processing');
+    };
+    const slides = [];
+    for (const url of [c.image('cover'), ...SIGNS.map((s) => c.image('post', s))]) slides.push((await make({ image_url: url, is_carousel_item: 'true' })).id);
+    for (const id of slides) await ready(id);
+    const carousel = await make({ media_type: 'CAROUSEL', children: slides.join(','), caption });
+    await ready(carousel.id);
+    return (await call('Instagram publish', graph(env, user + '/media_publish'), form({ creation_id: carousel.id, access_token: token }))).json();
+  });
 }
 
 // ---------- Reddit (script app, OAuth password grant) ----------
@@ -207,7 +219,8 @@ export async function share(env, day) {
     rootText: 'Today’s 12 horoscopes for ' + long + '. ' + DISCLAIMER + '\n\n' + INVITE + '\n' + site,
     short: when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
     line: (s) => day.signs[s.key],
-    image: (kind, s) => site + '/' + kind + '/' + s.slug + '-' + day.date + (kind === 'og' ? '.png' : '.jpg')
+    image: (kind, s) => kind === 'cover' ? site + '/post/cover-' + day.date + '.jpg'
+      : site + '/' + kind + '/' + s.slug + '-' + day.date + (kind === 'og' ? '.png' : '.jpg')
   };
 
   // The posts link to the day's images, which the site build publishes after 10:00. A

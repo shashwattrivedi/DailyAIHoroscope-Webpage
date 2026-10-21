@@ -124,6 +124,10 @@ async function drawImages(date, lineOf) {
         fs.writeFileSync(path.join(OUT, dir, slug(s) + '-' + date + '.' + ext), Buffer.from(img.split(',')[1], 'base64'));
       }
     }
+    // First slide of the Instagram carousel, in the colour of the sign of the season.
+    const [, m, d] = date.split('-').map(Number);
+    const cover = await page.evaluate((...a) => window.drawCover(...a), SIGNS[signIndex(m, d)].key, label, SITE.replace(/^https?:\/\//, ''));
+    fs.writeFileSync(path.join(OUT, 'post', 'cover-' + date + '.jpg'), Buffer.from(cover.split(',')[1], 'base64'));
     return true;
   } finally {
     await browser.close();
@@ -198,4 +202,4 @@ write('_headers', 'https://:project.pages.dev/*\n  X-Robots-Tag: noindex\n\nhttp
   // The font files never change, so browsers can keep them without asking again.
   '/fonts/*\n  Cache-Control: public, max-age=31536000, immutable\n');
 
-console.log('Built dist/ for ' + (day ? Object.keys(baked).join(', ') : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 24 images' : '') + ')');
+console.log('Built dist/ for ' + (day ? Object.keys(baked).join(', ') : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 25 images' : '') + ')');
