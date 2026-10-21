@@ -80,6 +80,11 @@ export async function alert(env, subject, problems) {
   const text = problems.map((p) => '- ' + p).join('\n\n') +
     '\n\nDetails are in the Worker logs: Cloudflare dashboard > Workers & Pages > dailyaihoroscope-api > Logs.\n';
   console.log('[alert] ' + subject + '\n' + text);
+  await mail(env, subject, text);
+}
+
+// Sends an email to ALERT_TO. type: 'plain' or 'html'.
+export async function mail(env, subject, body, type = 'plain') {
   if (!env.ALERT_EMAIL || !env.ALERT_TO) return;
   const from = env.ALERT_FROM || 'alerts@dailyaihoroscope.com';
   const raw = [
@@ -89,10 +94,11 @@ export async function alert(env, subject, problems) {
     'Date: ' + new Date().toUTCString(),
     'Message-ID: <' + crypto.randomUUID() + '@' + from.split('@')[1] + '>',
     'MIME-Version: 1.0',
-    'Content-Type: text/plain; charset=utf-8',
-    'Content-Transfer-Encoding: 8bit',
+    'Content-Type: text/' + type + '; charset=utf-8',
+    // base64 keeps long HTML lines within the 998-character limit of email.
+    'Content-Transfer-Encoding: base64',
     '',
-    text
+    btoa(Array.from(new TextEncoder().encode(body), (b) => String.fromCharCode(b)).join('')).replace(/.{76}/g, '$&\r\n')
   ].join('\r\n');
   await env.ALERT_EMAIL.send(new EmailMessage(from, env.ALERT_TO, raw));
 }

@@ -67,6 +67,10 @@ At 12:00 UTC (retry 14:00), after the site build has published the day's images,
 
 Settings are in `worker/wrangler.jsonc` (`SOCIAL` picks the platforms; `SOCIAL_DRY_RUN` is `"true"` until you want real posts, and only logs them). Keys are **Worker secrets, never in the repo**: run `npx wrangler secret put NAME` in your own terminal for each name in `worker/.dev.vars.example`. For local tests, copy that file to `worker/.dev.vars` (ignored by git) and run `npx wrangler dev --test-scheduled`, then open `/__scheduled?cron=0+10,12,14+*+*+*`.
 
+## Daily report and dashboard
+
+At 14:00 UTC the Worker collects a snapshot (Google Analytics for the previous day, followers and likes on Bluesky, Instagram and Facebook, the hashtag stories, and what was written and posted), keeps it in KV (`report:YYYY-MM-DD`, private), and emails it to `ALERT_TO`. `/dashboard` on the Worker shows the latest snapshot with 30-day trends; it answers 404 unless opened once with `?key=` and the `DASHBOARD_KEY` secret, which then sets a cookie. Google Analytics needs `GA_PROPERTY_ID` (wrangler.jsonc) and a read-only service account key in the `GA_SERVICE_ACCOUNT` secret.
+
 ## Alerts
 
 The Worker emails `ALERT_TO` (a secret; it must be a verified Cloudflare Email Routing destination) when something needs a person: writing a day's horoscopes failed, the site has no images for the day by 14:00, a platform still failed at the 14:00 retry, or (checked daily at 10:00) the Meta or GitHub token is invalid or expires within 14 days.

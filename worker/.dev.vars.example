@@ -10,6 +10,13 @@ GH_DISPATCH_TOKEN=
 # Where problem emails go (a verified Cloudflare Email Routing destination).
 ALERT_TO=
 
+# Private dashboard at /dashboard: open it once with ?key=<this>.
+DASHBOARD_KEY=
+
+# Google Analytics Data API for the daily report: the JSON key of a service account that
+# has Viewer access to the GA property (set GA_PROPERTY_ID in wrangler.jsonc).
+GA_SERVICE_ACCOUNT=
+
 # Bluesky: Settings > Privacy and security > App passwords
 BLUESKY_HANDLE=
 BLUESKY_APP_PASSWORD=
