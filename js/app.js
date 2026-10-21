@@ -316,9 +316,13 @@
     });
   }
 
+  // Sends a Google Analytics event (js/analytics.js); nothing if it didn't load.
+  const track = (name, params) => window.track && window.track(name, params);
+
   function select(i) {
     if (i === state.sel) return;
     state.sel = i;
+    track('select_sign', { sign: SIGNS[i].name });
     state.focus = null;
     // On a sign page, keep the address and title in step with the sign shown.
     if (pageSign >= 0) {
@@ -458,6 +462,7 @@
   async function share() {
     if (!lines) return;
     const sel = state.sel;
+    track('share', { sign: SIGNS[sel].name });
     const text = SIGNS[sel].name + ' today: “' + lineFor(sel) + '” #DailyAIHoroscopeWasCorrect';
     const url = SITE + '/' + signSlug(SIGNS[sel]);
     const card = cardFor(sel);
@@ -568,6 +573,7 @@
   async function save() {
     if (!lines) return;
     const sel = state.sel;
+    track('save_card', { sign: SIGNS[sel].name });
     const card = cardFor(sel);
     const file = cardFile(card.blob || (await card), sel);
     if (navigator.canShare && navigator.canShare({ files: [file] }) && matchMedia('(pointer: coarse)').matches) {

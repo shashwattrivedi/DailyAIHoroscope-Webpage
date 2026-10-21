@@ -73,8 +73,14 @@
     $('readTime').hidden = false;
   }
 
-  // Close the menu on Escape or a click elsewhere.
+  // Google Analytics events (js/analytics.js); nothing if it didn't load.
+  const track = (name, params) => window.track && window.track(name, params);
   const read = $('read');
+  read.addEventListener('toggle', () => { if (read.open) track('open_read_stories'); });
+  read.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => track('read_stories', { platform: a.firstChild.textContent.trim() })));
+  document.querySelector('.felt .btn.dark').addEventListener('click', () => track('share_story'));
+
+  // Close the menu on Escape or a click elsewhere.
   document.addEventListener('click', (e) => { if (read.open && !read.contains(e.target)) read.open = false; });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && read.open) { read.open = false; read.querySelector('summary').focus(); } });
 
