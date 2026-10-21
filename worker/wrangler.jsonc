@@ -29,7 +29,7 @@
     // Private dashboard (report.js); open it once with ?key=<DASHBOARD_KEY secret>.
     "DASHBOARD_URL": "https://dailyaihoroscope-api.shashwatdevai.workers.dev/dashboard",
     // Google Analytics property for the daily report (also needs the GA_SERVICE_ACCOUNT secret).
-    "GA_PROPERTY_ID": ""
+    "GA_PROPERTY_ID": "560068162"
   },
   // Problem emails go to the ALERT_TO secret, which must be a verified Email Routing destination.
   "send_email": [{ "name": "ALERT_EMAIL" }],
