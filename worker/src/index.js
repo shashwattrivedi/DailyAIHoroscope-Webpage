@@ -11,6 +11,7 @@
 // /v1/horoscope is only the fallback.
 
 import { share } from './social.js';
+import { buildSite, imagesLive, checkTokens, alert } from './ops.js';
 
 const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpius', 'Sagittarius', 'Capricornus', 'Aquarius', 'Pisces'];
 const FIRST_TZ = 14; // hours ahead of UTC
@@ -152,17 +153,36 @@ export default {
     return json({ error: 'Not found' }, 404);
   },
 
-  // Runs at 10:00, 12:00 and 14:00 UTC. Each run writes and publishes any date that is
-  // current somewhere and missing (at 10:00, the date that just started), then shares
-  // the newest date on social media. At 10:00 the site build hasn't published its
-  // images yet, so sharing waits for 12:00; 14:00 retries what didn't post.
+  // Runs at 10:00, 12:00 and 14:00 UTC:
+  // 1. Writes and publishes any date that is current somewhere and missing (at 10:00,
+  //    the date that just started).
+  // 2. If the site doesn't have that date's images yet, starts the site build (10:00,
+  //    and again at 12:00 if the first build didn't land).
+  // 3. From 12:00, shares it on social media; 14:00 retries what didn't post.
+  // Anything that is still wrong is emailed: failures that a later run can't fix, and
+  // (at 10:00) keys that are invalid or about to expire.
   async scheduled(event, env, ctx) {
-    const [first, last] = window_(Date.now());
-    for (const date of datesBetween(first, last)) await ensure(env, date);
-    try {
-      await share(env, await ensure(env, last));
-    } catch (e) {
-      console.log('[waiting] ' + e.message);
+    const now = event.scheduledTime || Date.now();
+    const hour = new Date(now).getUTCHours(), lastRun = hour >= 14;
+    const [first, last] = window_(now);
+    const problems = [];
+
+    for (const date of datesBetween(first, last)) {
+      try { await ensure(env, date); } catch (e) { problems.push('Writing the horoscopes for ' + date + ' failed: ' + e.message); }
     }
+
+    const day = await env.HOROSCOPES.get('day:' + last, 'json');
+    if (day) {
+      if (!(await imagesLive(env, day.date))) {
+        if (lastRun) problems.push('The site still has no images for ' + day.date + ', so nothing was posted. Check the Deploy action on GitHub.');
+        else await buildSite(env).catch((e) => problems.push(e.message));
+      } else if (hour >= 12) {
+        const failed = (await share(env, day).catch((e) => [{ name: 'social media', error: e.message }])).filter((r) => r.error);
+        if (lastRun) failed.forEach((r) => problems.push('Posting to ' + r.name + ' failed: ' + r.error));
+      }
+    }
+
+    if (hour === 10) problems.push(...(await checkTokens(env, now)));
+    if (problems.length) await alert(env, 'Daily AI Horoscope: ' + problems.length + ' problem' + (problems.length > 1 ? 's' : '') + ' (' + last + ')', problems);
   }
 };

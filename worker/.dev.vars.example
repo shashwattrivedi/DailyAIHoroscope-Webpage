@@ -3,6 +3,13 @@
 #   npx wrangler secret put BLUESKY_APP_PASSWORD
 # Leave out any platform you don't use, or remove it from SOCIAL in wrangler.jsonc.
 
+# GitHub fine-grained token, only this repo, permission Actions: Read and write.
+# The Worker uses it to start the daily site build.
+GH_DISPATCH_TOKEN=
+
+# Where problem emails go (a verified Cloudflare Email Routing destination).
+ALERT_TO=
+
 # Bluesky: Settings > Privacy and security > App passwords
 BLUESKY_HANDLE=
 BLUESKY_APP_PASSWORD=

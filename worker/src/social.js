@@ -239,5 +239,5 @@ export async function share(env, day) {
     });
   }));
   results.forEach((r, i) => console.log((r.status === 'fulfilled' ? '[ok] ' : '[failed] ') + names[i] + (r.reason ? ': ' + r.reason.message : '')));
-  return results;
+  return results.map((r, i) => ({ name: names[i], error: r.reason ? r.reason.message : null }));
 }

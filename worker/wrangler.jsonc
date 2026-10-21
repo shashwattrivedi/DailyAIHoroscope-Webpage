@@ -23,11 +23,15 @@
     // "false": post only the first X post, not the 12 replies (the free X API tier allows few posts).
     "X_THREAD": "true",
     "REDDIT_SUBREDDIT": "",
-    "META_GRAPH_VERSION": "v23.0"
+    "META_GRAPH_VERSION": "v23.0",
+    // The repo whose Deploy action the Worker starts each day (needs the GH_DISPATCH_TOKEN secret).
+    "GITHUB_REPO": "shashwattrivedi/DailyAIHoroscope-Webpage"
   },
+  // Problem emails go to the ALERT_TO secret, which must be a verified Email Routing destination.
+  "send_email": [{ "name": "ALERT_EMAIL" }],
   // One cron (the Free plan allows 5 per account). 10:00 UTC, when a new date starts
-  // (00:00 in UTC+14): writes and publishes it; if this run fails, the first request for
-  // the date writes it (see fetch()). 12:00 UTC: shares it on social media, after the
-  // 10:10 site build has published the images. 14:00 UTC: retries what didn't post.
+  // (00:00 in UTC+14): writes and publishes it, then starts the site build; if this run
+  // fails, the first request for the date writes it (see fetch()). 12:00 UTC: shares it
+  // on social media. 14:00 UTC: retries what didn't post. See scheduled() in index.js.
   "triggers": { "crons": ["0 10,12,14 * * *"] }
 }
