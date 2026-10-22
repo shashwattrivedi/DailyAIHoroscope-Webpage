@@ -194,6 +194,7 @@ function status(s) {
   return item('Horoscopes for ' + s.date, s.written, s.written ? 'written' : 'missing') +
     item('Bluesky', posted.bluesky >= 12, (posted.bluesky || 0) + '/12') +
     item('Instagram', posted.instagram >= 1, posted.instagram ? 'posted' : 'not posted') +
+    item('Instagram stories', posted.instagram_story >= 13, (posted.instagram_story || 0) + '/13') +
     item('Facebook', posted.facebook >= 1, posted.facebook ? 'posted' : 'not posted');
 }
 

@@ -102,8 +102,9 @@ function signPage(template, day, i, meta) {
   return html;
 }
 
-// Draws og/<sign>-<date>.png (link previews) and post/<sign>-<date>.jpg (Instagram,
-// posted by the Worker) for every sign. The date is in the file name because platforms
+// Draws og/<sign>-<date>.png (link previews), post/<sign>-<date>.jpg (Instagram and
+// Bluesky, posted by the Worker) and story/<sign>-<date>.jpg (Instagram stories) for
+// every sign. The date is in the file name because platforms
 // cache images by URL. Returns false if Chrome isn't available.
 async function drawImages(date, lineOf) {
   const chrome = [process.env.CHROME_PATH, '/usr/bin/google-chrome', '/usr/bin/chromium', 'C:/Program Files/Google/Chrome/Application/chrome.exe',
@@ -117,10 +118,13 @@ async function drawImages(date, lineOf) {
     await page.goto(pathToFileURL(path.join(ROOT, 'scripts', 'og.html')).href, { waitUntil: 'networkidle0' });
     fs.mkdirSync(path.join(OUT, 'og'));
     fs.mkdirSync(path.join(OUT, 'post'));
+    fs.mkdirSync(path.join(OUT, 'story'));
     const label = new Date(date + 'T12:00:00Z').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).replace(',', '').toUpperCase();
     for (const s of SIGNS) {
-      for (const [layout, dir, ext] of [['og', 'og', 'png'], ['post', 'post', 'jpg']]) {
-        const img = await page.evaluate((...a) => window.drawCard(...a), layout, s.key, label, lineOf(s), SITE.replace(/^https?:\/\//, ''));
+      for (const [layout, dir, ext] of [['og', 'og', 'png'], ['post', 'post', 'jpg'], ['story', 'story', 'jpg']]) {
+        // A story can't carry a link, so it shows the sign's own address.
+        const site = SITE.replace(/^https?:\/\//, '') + (layout === 'story' ? '/' + slug(s) : '');
+        const img = await page.evaluate((...a) => window.drawCard(...a), layout, s.key, label, lineOf(s), site);
         fs.writeFileSync(path.join(OUT, dir, slug(s) + '-' + date + '.' + ext), Buffer.from(img.split(',')[1], 'base64'));
       }
     }
@@ -128,6 +132,8 @@ async function drawImages(date, lineOf) {
     const [, m, d] = date.split('-').map(Number);
     const cover = await page.evaluate((...a) => window.drawCover(...a), SIGNS[signIndex(m, d)].key, label, SITE.replace(/^https?:\/\//, ''));
     fs.writeFileSync(path.join(OUT, 'post', 'cover-' + date + '.jpg'), Buffer.from(cover.split(',')[1], 'base64'));
+    const storyCover = await page.evaluate((...a) => window.drawCover(...a), SIGNS[signIndex(m, d)].key, label, SITE.replace(/^https?:\/\//, ''), true);
+    fs.writeFileSync(path.join(OUT, 'story', 'cover-' + date + '.jpg'), Buffer.from(storyCover.split(',')[1], 'base64'));
     return true;
   } finally {
     await browser.close();
@@ -202,4 +208,4 @@ write('_headers', 'https://:project.pages.dev/*\n  X-Robots-Tag: noindex\n\nhttp
   // The font files never change, so browsers can keep them without asking again.
   '/fonts/*\n  Cache-Control: public, max-age=31536000, immutable\n');
 
-console.log('Built dist/ for ' + (day ? Object.keys(baked).join(', ') : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 25 images' : '') + ')');
+console.log('Built dist/ for ' + (day ? Object.keys(baked).join(', ') : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 38 images' : '') + ')');

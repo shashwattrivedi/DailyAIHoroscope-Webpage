@@ -145,11 +145,26 @@ async function facebook(c) {
     (await call('Facebook post', graph(env, env.META_PAGE_ID + '/feed'), form({ message, link: c.site, access_token: env.META_PAGE_TOKEN }))).json());
 }
 
+// Instagram fetches each image itself; every image is a container that must finish
+// processing before it can be published.
+const igMake = async (env, fields) => (await call('Instagram upload', graph(env, env.INSTAGRAM_USER_ID + '/media'),
+  form({ ...fields, access_token: env.META_PAGE_TOKEN }))).json();
+async function igReady(env, id) {
+  for (let i = 0; i < 20; i++) {
+    const st = await (await call('Instagram status', graph(env, id) + '?fields=status_code&access_token=' + encodeURIComponent(env.META_PAGE_TOKEN))).json();
+    if (st.status_code === 'FINISHED') return;
+    if (st.status_code === 'ERROR' || st.status_code === 'EXPIRED') throw new Error('Instagram: upload ' + st.status_code);
+    await sleep(3000);
+  }
+  throw new Error('Instagram: upload still processing');
+}
+const igPublish = async (env, id) => (await call('Instagram publish', graph(env, env.INSTAGRAM_USER_ID + '/media_publish'),
+  form({ creation_id: id, access_token: env.META_PAGE_TOKEN }))).json();
+
 // One carousel a day: a cover slide ("swipe to find your sign"), then the 12 sign cards,
-// with all 12 lines in the caption. Instagram fetches each image itself; every slide is
-// a container that must finish processing before the carousel can be published.
+// with all 12 lines in the caption.
 async function instagram(c) {
-  const { env } = c, token = env.META_PAGE_TOKEN, user = env.INSTAGRAM_USER_ID;
+  const { env } = c;
   const head = 'Today’s 12 horoscopes for ' + c.long + ', written by an AI. Swipe to find your sign.';
   const tail = '\n\n' + DISCLAIMER + '\nAll 12 signs: ' + c.site.replace(/^https?:\/\//, '') +
     '\n\n' + INVITE + '\n#DailyAIHoroscope #horoscope #zodiac #barnumeffect ' + SIGNS.map((s) => '#' + s.slug).join(' ');
@@ -157,23 +172,27 @@ async function instagram(c) {
   if (caption.length > 2200) caption = head + tail; // Instagram's caption limit
 
   await c.once('instagram', caption, async () => {
-    const make = async (fields) => (await call('Instagram upload', graph(env, user + '/media'), form({ ...fields, access_token: token }))).json();
-    const ready = async (id) => {
-      for (let i = 0; i < 20; i++) {
-        const st = await (await call('Instagram status', graph(env, id) + '?fields=status_code&access_token=' + encodeURIComponent(token))).json();
-        if (st.status_code === 'FINISHED') return;
-        if (st.status_code === 'ERROR' || st.status_code === 'EXPIRED') throw new Error('Instagram: upload ' + st.status_code);
-        await sleep(3000);
-      }
-      throw new Error('Instagram: upload still processing');
-    };
     const slides = [];
-    for (const url of [c.image('cover'), ...SIGNS.map((s) => c.image('post', s))]) slides.push((await make({ image_url: url, is_carousel_item: 'true' })).id);
-    for (const id of slides) await ready(id);
-    const carousel = await make({ media_type: 'CAROUSEL', children: slides.join(','), caption });
-    await ready(carousel.id);
-    return (await call('Instagram publish', graph(env, user + '/media_publish'), form({ creation_id: carousel.id, access_token: token }))).json();
+    for (const url of [c.image('cover'), ...SIGNS.map((s) => c.image('post', s))]) slides.push((await igMake(env, { image_url: url, is_carousel_item: 'true' })).id);
+    for (const id of slides) await igReady(env, id);
+    const carousel = await igMake(env, { media_type: 'CAROUSEL', children: slides.join(','), caption });
+    await igReady(env, carousel.id);
+    return igPublish(env, carousel.id);
   });
+}
+
+// 13 stories a day, in zodiac order so they play as a sequence: a cover ("tap to find
+// your sign"), then one 9:16 card per sign. A story can't carry a caption or a link
+// (the API can't add link stickers), so each card shows its sign's address.
+async function instagramStory(c) {
+  const { env } = c;
+  for (const [part, url] of [['cover', c.image('story-cover')], ...SIGNS.map((s) => [s.slug, c.image('story', s)])]) {
+    await c.once('instagram_story:' + part, url, async () => {
+      const story = await igMake(env, { media_type: 'STORIES', image_url: url });
+      await igReady(env, story.id);
+      return igPublish(env, story.id);
+    });
+  }
 }
 
 // ---------- Reddit (script app, OAuth password grant) ----------
@@ -203,6 +222,7 @@ const PLATFORMS = {
   x: { run: x, keys: ['X_API_KEY', 'X_API_SECRET', 'X_ACCESS_TOKEN', 'X_ACCESS_SECRET'] },
   facebook: { run: facebook, keys: ['META_PAGE_ID', 'META_PAGE_TOKEN'] },
   instagram: { run: instagram, keys: ['INSTAGRAM_USER_ID', 'META_PAGE_TOKEN'] },
+  instagram_story: { run: instagramStory, keys: ['INSTAGRAM_USER_ID', 'META_PAGE_TOKEN'] },
   reddit: { run: reddit, keys: ['REDDIT_CLIENT_ID', 'REDDIT_CLIENT_SECRET', 'REDDIT_USERNAME', 'REDDIT_PASSWORD', 'REDDIT_SUBREDDIT'] }
 };
 
@@ -220,12 +240,13 @@ export async function share(env, day) {
     short: when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
     line: (s) => day.signs[s.key],
     image: (kind, s) => kind === 'cover' ? site + '/post/cover-' + day.date + '.jpg'
+      : kind === 'story-cover' ? site + '/story/cover-' + day.date + '.jpg'
       : site + '/' + kind + '/' + s.slug + '-' + day.date + (kind === 'og' ? '.png' : '.jpg')
   };
 
   // The posts link to the day's images, which the site build publishes after 10:00. A
   // missing file still answers 200 with the home page, so check that it is an image.
-  for (const kind of ['og', 'post']) {
+  for (const kind of ['og', 'post', 'story']) {
     const res = await fetch(base.image(kind, SIGNS[0]), { method: 'HEAD' });
     if (!res.ok || !/^image\//.test(res.headers.get('content-type') || ''))
       throw new Error('Images for ' + day.date + ' are not on the site yet (' + res.status + ' ' + res.headers.get('content-type') + '); the next run will try again.');

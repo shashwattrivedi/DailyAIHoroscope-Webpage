@@ -27,18 +27,21 @@
       return out;
     }
 
-    // Two layouts: 'og' is the 1200x630 link preview (PNG); 'post' is the 1080x1350 (4:5)
-    // card for Instagram, which only takes JPEG.
+    // Three layouts: 'og' is the 1200x630 link preview (PNG); 'post' is the 1080x1350 (4:5)
+    // card for Instagram, which only takes JPEG; 'story' is the 1080x1920 (9:16) Instagram
+    // story, with everything between y 250 and 1670, clear of the app's overlays.
     const LAYOUT = {
       og: { W: 1200, H: 630, P: 64, sky: { x: 620, y: 40, w: 540, h: 550 }, word: 34, pill: [24, 50], born: 160, name: [120, 640, 192],
         quote: [52, 335, 210], foot: 22, stars: 70, type: 'image/png' },
       post: { W: 1080, H: 1350, P: 80, sky: { x: 40, y: 150, w: 1000, h: 640 }, word: 40, pill: [28, 56], born: 830, name: [150, 920, 868],
-        quote: [60, 1040, 230], foot: 26, stars: 90, type: 'image/jpeg' }
+        quote: [60, 1040, 230], foot: 26, stars: 90, type: 'image/jpeg' },
+      story: { W: 1080, H: 1920, P: 80, top: 290, sky: { x: 40, y: 390, w: 1000, h: 620 }, word: 40, pill: [28, 56], born: 1060, name: [150, 920, 1100],
+        quote: [60, 1290, 280], foot: 30, footY: 1620, stars: 130, type: 'image/jpeg' }
     };
 
     // date: 'WED 21 OCT'; line may be empty (then a generic tagline is shown).
     window.drawCard = async function (layout, key, date, line, site) {
-      const L = LAYOUT[layout], { W, H, P } = L;
+      const L = LAYOUT[layout], { W, H, P } = L, top = L.top || P;
       const s = SIGNS.find((x) => x.key === key), c = window.CONSTELLATIONS[key];
       await Promise.all(['800 34px Outfit', '900 120px Outfit', '700 24px "Space Mono"'].map((f) => document.fonts.load(f)));
       const cv = document.createElement('canvas');
@@ -67,13 +70,13 @@
       ctx.fillStyle = '#111111';
       ctx.textBaseline = 'top';
       ctx.font = '800 ' + L.word + 'px Outfit';
-      ctx.fillText('Daily AI Horoscope', P, P - 8);
+      ctx.fillText('Daily AI Horoscope', P, top - 8);
       const [ps, ph] = L.pill;
       ctx.font = '700 ' + ps + 'px "Space Mono"';
       const dw = ctx.measureText(date).width + 40;
-      ctx.beginPath(); ctx.roundRect(W - P - dw, P - 14, dw, ph, ph / 2); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(W - P - dw, top - 14, dw, ph, ph / 2); ctx.fill();
       ctx.fillStyle = s.color;
-      ctx.fillText(date, W - P - dw + 20, P - 14 + (ph - ps) / 2 + 1);
+      ctx.fillText(date, W - P - dw + 20, top - 14 + (ph - ps) / 2 + 1);
 
       ctx.fillStyle = '#111111';
       ctx.font = '700 ' + ps + 'px "Space Mono"';
@@ -96,7 +99,7 @@
       lines.forEach((l, i) => ctx.fillText(l, P, qY + i * lh));
 
       ctx.font = '700 ' + L.foot + 'px "Space Mono"';
-      ctx.fillText(site, P, H - P + 8);
+      ctx.fillText(site, P, L.footY || H - P + 8);
       return cv.toDataURL(L.type, 0.92);
     };
 
@@ -114,17 +117,19 @@
 
     // First slide of the Instagram carousel (1080x1350 JPEG): what the post is, and
     // "swipe" to the 12 sign cards. key: the sign of the season, for the colour.
-    window.drawCover = async function (key, date, site) {
-      const W = 1080, H = 1350, P = 80, s = SIGNS.find((x) => x.key === key);
+    // story: the same for the first story (1080x1920), centred in the safe area, "tap".
+    window.drawCover = async function (key, date, site, story) {
+      const W = 1080, H = 1350, P = 80, s = SIGNS.find((x) => x.key === key), full = story ? 1920 : H;
       await Promise.all(['800 40px Outfit', '900 140px Outfit', '700 28px "Space Mono"'].map((f) => document.fonts.load(f)));
       const cv = document.createElement('canvas');
-      cv.width = W; cv.height = H;
+      cv.width = W; cv.height = full;
       const ctx = cv.getContext('2d');
       ctx.fillStyle = s.color;
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillRect(0, 0, W, full);
       ctx.fillStyle = '#FFFFFF';
-      seeded(110, W, H).forEach((f) => { ctx.globalAlpha = f.o; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 1.5, 0, 7); ctx.fill(); });
+      seeded(story ? 160 : 110, W, full).forEach((f) => { ctx.globalAlpha = f.o; ctx.beginPath(); ctx.arc(f.x, f.y, f.r * 1.5, 0, 7); ctx.fill(); });
       ctx.globalAlpha = 1;
+      ctx.translate(0, (full - H) / 2);
 
       ctx.fillStyle = '#111111';
       ctx.textBaseline = 'top';
@@ -158,7 +163,7 @@
       });
 
       ctx.font = '700 28px "Space Mono"';
-      const swipe = 'SWIPE  →  FIND YOUR SIGN', sw = ctx.measureText(swipe).width + 48;
+      const swipe = (story ? 'TAP' : 'SWIPE') + '  →  FIND YOUR SIGN', sw = ctx.measureText(swipe).width + 48;
       ctx.beginPath(); ctx.roundRect(W - P - sw, H - P - 40, sw, 64, 32); ctx.fill();
       ctx.fillStyle = s.color; ctx.fillText(swipe, W - P - sw + 24, H - P - 40 + 19);
       ctx.fillStyle = '#111111'; ctx.font = '700 24px "Space Mono"';
