@@ -78,7 +78,17 @@ At 14:00 UTC the Worker collects a snapshot (Google Analytics for the previous d
 
 ## Alerts
 
-The Worker emails `ALERT_TO` (a secret; it must be a verified Cloudflare Email Routing destination) when something needs a person: writing a day's horoscopes failed, the site has no images for the day by 14:00, a platform still failed at the 14:00 retry, or (checked daily at 10:00) the Meta or GitHub token is invalid or expires within 14 days.
+The Worker emails `ALERT_TO` (a secret; it must be a verified Cloudflare Email Routing destination) when something needs a person: writing a day's horoscopes failed, the site has no images for the day by 14:00, a platform still failed at the 14:00 retry, or (checked daily at 10:00) the Meta or GitHub token is invalid, expires within 14 days, or (Meta) isn't a Page token with the permissions below.
+
+## Renewing the Meta token
+
+Facebook and Instagram posting and stats use one Page token, the `META_PAGE_TOKEN` secret. It stops working if it's revoked, loses its Page permissions, or Facebook logs the account out (for example after a password change or a security check). Meta then answers with error 190, and the alert links here.
+
+1. Log in to facebook.com with the account that manages the Page, and clear any security check it shows.
+2. In the [Graph API Explorer](https://developers.facebook.com/tools/explorer/), pick the "Daily AI Horoscope Poster" app and "Get User Access Token" with `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `instagram_basic`, `instagram_content_publish` (and `business_management` if the Page is in a Business portfolio). When Facebook Login asks, select the Daily AI Horoscope Page **and** its Instagram account.
+3. In the [Access Token Debugger](https://developers.facebook.com/tools/debug/accesstoken/), "Extend Access Token" to get a long-lived user token.
+4. Back in the Explorer, with the long-lived token, run `GET me/accounts` and copy the Page's `access_token`. Check it in the debugger: Type **Page**, the permissions above, Expires **Never**.
+5. From the `worker` folder: `npx wrangler secret put META_PAGE_TOKEN` and paste it. The next run retries only what failed.
 
 Each post is recorded in KV, so re-runs never post twice, and a platform that fails doesn't stop the others. Results are in the Worker's logs (`[posted]`, `[ok]`, `[failed]`).
 

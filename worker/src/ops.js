@@ -40,6 +40,20 @@ export async function imagesLive(env, date) {
   return true;
 }
 
+// What posting to the Page and Instagram, and reading their stats, need.
+const META_SCOPES = ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts', 'instagram_basic', 'instagram_content_publish'];
+const META_RENEW = 'Make a new one: see "Renewing the Meta token" in the README ' +
+  '(https://github.com/shashwattrivedi/DailyAIHoroscope-Webpage#renewing-the-meta-token).';
+
+// Meta answers 190 (or a permission error) when the token was revoked, lost its Page
+// permissions, or the Facebook account was logged out by a security check. Retrying
+// can't fix that, so say what to do instead of passing on the raw error.
+export function explain(message) {
+  if (/"code":\s*190|must be granted before impersonating|Error validating access token|session has been invalidated/i.test(message || ''))
+    return 'The Meta Page token (META_PAGE_TOKEN) no longer works (' + (message.match(/^[^:]+/) || [''])[0] + '). ' + META_RENEW;
+  return message;
+}
+
 const soon = (t, now) => t && t - now < WARN_DAYS * DAY;
 const when = (t) => new Date(t).toISOString().slice(0, 10);
 
@@ -53,11 +67,13 @@ export async function checkTokens(env, now = Date.now()) {
       encodeURIComponent(env.META_PAGE_TOKEN) + '&access_token=' + encodeURIComponent(env.META_PAGE_TOKEN);
     try {
       const d = (await (await fetch(url)).json()).data || {};
-      if (!d.is_valid) out.push('The Meta Page token (META_PAGE_TOKEN) is no longer valid. Facebook and Instagram posts will fail until it is replaced.');
+      const missing = META_SCOPES.filter((s) => !(d.scopes || []).includes(s));
+      if (!d.is_valid) out.push('The Meta Page token (META_PAGE_TOKEN) is no longer valid. Facebook and Instagram posts will fail until it is replaced. ' + META_RENEW);
+      else if (d.type !== 'PAGE') out.push('META_PAGE_TOKEN is a ' + d.type + ' token, not a Page token, so Page and Instagram calls will fail. ' + META_RENEW);
+      else if (missing.length) out.push('META_PAGE_TOKEN is missing the permission(s) ' + missing.join(', ') + ', so some posts or stats will fail. ' + META_RENEW);
       else {
-        if (soon(d.expires_at * 1000, now)) out.push('The Meta Page token (META_PAGE_TOKEN) expires on ' + when(d.expires_at * 1000) + '.');
-        if (soon(d.data_access_expires_at * 1000, now)) out.push('Meta data access for META_PAGE_TOKEN ends on ' + when(d.data_access_expires_at * 1000) +
-          '. Generate a new token in the Graph API Explorer before then.');
+        if (soon(d.expires_at * 1000, now)) out.push('The Meta Page token (META_PAGE_TOKEN) expires on ' + when(d.expires_at * 1000) + '. ' + META_RENEW);
+        if (soon(d.data_access_expires_at * 1000, now)) out.push('Meta data access for META_PAGE_TOKEN ends on ' + when(d.data_access_expires_at * 1000) + '. ' + META_RENEW);
       }
     } catch (e) {
       out.push('Couldn\'t check the Meta token: ' + e.message);

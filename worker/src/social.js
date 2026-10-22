@@ -9,6 +9,8 @@
 //   and a run that broke halfway continues where it stopped.
 // - Platforms run independently; one failing doesn't stop the others.
 
+import { explain } from './ops.js';
+
 const SIGNS = [
   ['Aries', 'Aries', '♈'], ['Taurus', 'Taurus', '♉'], ['Gemini', 'Gemini', '♊'], ['Cancer', 'Cancer', '♋'],
   ['Leo', 'Leo', '♌'], ['Virgo', 'Virgo', '♍'], ['Libra', 'Libra', '♎'], ['Scorpius', 'Scorpio', '♏'],
@@ -182,8 +184,10 @@ async function instagram(c) {
 }
 
 // 13 stories a day, in zodiac order so they play as a sequence: a cover ("tap to find
-// your sign"), then one 9:16 card per sign. A story can't carry a caption or a link
-// (the API can't add link stickers), so each card shows its sign's address.
+// your sign"), then one 9:16 card per sign. If a run stops partway, the next run of the
+// same day carries on from the next sign, so the sequence stays in order. A story can't
+// carry a caption or a link (the API can't add link stickers), so each card shows its
+// sign's address.
 async function instagramStory(c) {
   const { env } = c;
   for (const [part, url] of [['cover', c.image('story-cover')], ...SIGNS.map((s) => [s.slug, c.image('story', s)])]) {
@@ -273,5 +277,5 @@ export async function share(env, day) {
     });
   }));
   results.forEach((r, i) => console.log((r.status === 'fulfilled' ? '[ok] ' : '[failed] ') + names[i] + (r.reason ? ': ' + r.reason.message : '')));
-  return results.map((r, i) => ({ name: names[i], error: r.reason ? r.reason.message : null }));
+  return results.map((r, i) => ({ name: names[i], error: r.reason ? explain(r.reason.message) : null }));
 }

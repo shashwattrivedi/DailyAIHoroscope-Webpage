@@ -9,7 +9,7 @@
 //   the Page token the posting already uses.
 // - Hashtag stories (stats.js), and what the Worker wrote and posted that day.
 
-import { mail } from './ops.js';
+import { mail, explain } from './ops.js';
 
 const DAY = 86400000;
 const ymd = (t) => new Date(t).toISOString().slice(0, 10);
@@ -123,15 +123,17 @@ async function analytics(env) {
 
 // ---------- The Worker's own work ----------
 
+// { platform: count } and { platform: [part, …] }, e.g. instagram_story: ['cover', 'aries', …].
 async function posting(env, date) {
-  const out = {};
+  const out = {}, parts = {};
   const { keys } = await env.HOROSCOPES.list({ prefix: 'posted:' + date + ':' });
   for (const { name } of keys) {
-    const part = name.split(':').slice(2);
-    if (part[0] === 'test') continue;
-    out[part[0]] = (out[part[0]] || 0) + 1;
+    const [platform, part] = name.split(':').slice(2);
+    if (platform === 'test') continue;
+    out[platform] = (out[platform] || 0) + 1;
+    if (part) (parts[platform] ||= []).push(part);
   }
-  return out;
+  return { out, parts };
 }
 
 // Runs every collector; one failing doesn't stop the others (its error is kept).
@@ -145,7 +147,7 @@ export async function collect(env, now = Date.now()) {
   const stats = await env.DATA.get('data/stats.json');
   snap.hashtag = stats ? await stats.json().then((s) => ({ total: s.total, week: s.week })) : null;
   snap.written = !!(await env.HOROSCOPES.get('day:' + date));
-  snap.posted = await posting(env, date);
+  ({ out: snap.posted, parts: snap.postedParts } = await posting(env, date));
   await env.HOROSCOPES.put('report:' + ymd(now), JSON.stringify(snap), { expirationTtl: 400 * 86400 });
   return snap;
 }
@@ -158,13 +160,16 @@ async function history(env, days) {
 
 // [section, label, value] rows shown in the email and on the dashboard.
 const g = (o, ...path) => path.reduce((v, k) => (v == null ? v : v[k]), o);
+// An event count: 0 when GA was read and nothing happened, — only when GA couldn't be read.
+const ev = (s, name) => (s.ga ? g(s, 'ga', 'events', name) || 0 : null);
 const ROWS = [
   ['Site (Google Analytics, previous day)', 'Visitors', (s) => g(s, 'ga', 'users')],
   ['', 'Page views', (s) => g(s, 'ga', 'views')],
-  ['', 'Sign switches', (s) => g(s, 'ga', 'events', 'select_sign')],
-  ['', 'Shares', (s) => g(s, 'ga', 'events', 'share')],
-  ['', 'Cards saved', (s) => g(s, 'ga', 'events', 'save_card')],
-  ['', 'Read stories clicks', (s) => g(s, 'ga', 'events', 'read_stories')],
+  ['', 'Sign switches', (s) => ev(s, 'select_sign')],
+  ['', 'Shares', (s) => ev(s, 'share')],
+  ['', 'Cards saved', (s) => ev(s, 'save_card')],
+  ['', 'Read stories clicks', (s) => ev(s, 'read_stories')],
+  ['', 'Widget snippets copied', (s) => ev(s, 'copy_embed')],
   ['Bluesky', 'Followers', (s) => g(s, 'bluesky', 'followers')],
   ['', 'Likes (all posts)', (s) => g(s, 'bluesky', 'likes')],
   ['', 'Reposts', (s) => g(s, 'bluesky', 'reposts')],
@@ -187,20 +192,30 @@ function change(v, p) {
   return '<span style="color:' + (d > 0 ? '#1F9D55' : '#C0392B') + '">' + (d > 0 ? '+' : '') + d.toLocaleString('en-US') + '</span>';
 }
 
+const STORY_ORDER = ['cover', 'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
+const short = (d) => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+
+// The report covers three different days; say which is which.
+const dates = (s) => '<p style="margin:0 0 10px;font-size:13px;color:#555">Report for ' + short(s.at.slice(0, 10)) + ' · posts for ' + short(s.date) +
+  ' · site traffic for ' + short(ymd(Date.parse(s.at) - DAY)) + ' (Google Analytics, previous day)</p>';
+
 function status(s) {
   const posted = s.posted || {};
   const item = (name, ok, text) => '<span style="display:inline-block;margin:0 6px 6px 0;padding:4px 10px;border-radius:999px;background:' +
     (ok ? '#E3F6EA;color:#1F7A45' : '#FDE8E6;color:#B03A2E') + '">' + name + ': ' + text + '</span>';
-  return item('Horoscopes for ' + s.date, s.written, s.written ? 'written' : 'missing') +
+  // A partial run of stories: name the last one that went out (they post in this order).
+  const stories = posted.instagram_story || 0, done = (s.postedParts || {}).instagram_story || [];
+  const last = STORY_ORDER.filter((p) => done.includes(p)).pop();
+  return item('Horoscopes for ' + short(s.date), s.written, s.written ? 'written' : 'missing') +
     item('Bluesky', posted.bluesky >= 12, (posted.bluesky || 0) + '/12') +
     item('Instagram', posted.instagram >= 1, posted.instagram ? 'posted' : 'not posted') +
-    item('Instagram stories', posted.instagram_story >= 13, (posted.instagram_story || 0) + '/13') +
+    item('Instagram stories', stories >= 13, stories + '/13' + (stories && stories < 13 && last ? ' (up to ' + last + ')' : '')) +
     item('Facebook', posted.facebook >= 1, posted.facebook ? 'posted' : 'not posted');
 }
 
 function errors(s) {
   const e = Object.entries(s.errors || {});
-  return e.length ? '<p style="color:#B03A2E;font-size:13px">Couldn\'t read: ' + e.map(([k, m]) => esc(k + ' (' + m + ')')).join('; ') + '</p>' : '';
+  return e.length ? '<p style="color:#B03A2E;font-size:13px">Couldn\'t read: ' + e.map(([k, m]) => esc(k + ' (' + explain(m) + ')')).join('; ') + '</p>' : '';
 }
 
 function lists(s) {
@@ -239,7 +254,7 @@ export async function dailyReport(env, now = Date.now()) {
   const snap = await collect(env, now);
   const prev = await env.HOROSCOPES.get('report:' + ymd(now - DAY), 'json');
   const body = '<div style="font-family:system-ui,sans-serif;max-width:640px;color:#111">' +
-    '<h2 style="margin:0 0 8px">Daily AI Horoscope · ' + esc(ymd(now)) + '</h2>' + status(snap) + table(snap, prev) + lists(snap) + errors(snap) +
+    '<h2 style="margin:0 0 8px">Daily AI Horoscope · ' + esc(ymd(now)) + '</h2>' + dates(snap) + status(snap) + table(snap, prev) + lists(snap) + errors(snap) +
     (env.DASHBOARD_URL ? '<p><a href="' + esc(env.DASHBOARD_URL) + '">Open the dashboard</a> (30-day trends)</p>' : '') + LINKS +
     '<p style="font-size:12px;color:#777">Changes are against the previous day\'s report.</p></div>';
   await mail(env, 'Daily AI Horoscope report · ' + ymd(now), body, 'html');
@@ -282,7 +297,7 @@ export async function dashboard(req, env) {
     'table td{vertical-align:middle}</style></head><body><main>' +
     '<div class="top"><h1>Daily AI Horoscope</h1><span><a class="btn" href="?refresh">Refresh now</a> <a class="btn" href="?mail">Email me this</a></span></div>' +
     (s ? '<p style="color:#555;margin:0">Last collected ' + esc(s.at.replace('T', ' ').slice(0, 16)) + ' UTC · ' + hist.length + ' day' + (hist.length > 1 ? 's' : '') + ' of history</p>' +
-      '<div class="card">' + status(s) + '</div><div class="card">' + table(s, prev, hist) + '</div><div class="card">' + lists(s) + errors(s) + '</div>' +
+      '<div class="card">' + dates(s) + status(s) + '</div><div class="card">' + table(s, prev, hist) + '</div><div class="card">' + lists(s) + errors(s) + '</div>' +
       '<div class="card"><b>Last 14 days</b><table style="width:100%;font-size:13px;margin-top:8px">' + days + '</table></div>'
       : '<p>No reports yet. Use Refresh now.</p>') +
     LINKS + '</main></body></html>';

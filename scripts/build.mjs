@@ -11,6 +11,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -256,6 +257,16 @@ feed('feed.xml', 'Daily AI Horoscope', 'Twelve horoscope-sounding lines written 
 SIGNS.forEach((s) => feed('feed/' + slug(s) + '.xml', 'Daily AI Horoscope: ' + s.name, 'Today’s ' + s.name + ' horoscope, written by an AI every day. No astrology.',
   feedDays.flatMap((d) => items(d, [s]))));
 
+// Every page asks for its CSS and JS by content hash (css/site.css?v=1a2b3c4d5e), so after
+// a deploy a browser never pairs new HTML with an old cached file, and an unchanged file
+// stays cached.
+const hashes = {};
+const hashOf = (f) => (hashes[f] ??= crypto.createHash('sha256').update(fs.readFileSync(path.join(OUT, f))).digest('hex').slice(0, 10));
+for (const f of fs.readdirSync(OUT).filter((f) => f.endsWith('.html'))) {
+  const html = fs.readFileSync(path.join(OUT, f), 'utf8');
+  write(f, html.replace(/((?:href|src)=")((?:css|js)\/[^"?#]+\.(?:css|js))"/g, (m, attr, file) => attr + file + '?v=' + hashOf(file) + '"'));
+}
+
 const lastmod = date;
 const urls = ['/', '/purpose', '/embed', ...SIGNS.map((s) => '/' + slug(s))];
 write('sitemap.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
@@ -265,6 +276,8 @@ write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE + '/sitemap.xm
 write('_headers', 'https://:project.pages.dev/*\n  X-Robots-Tag: noindex\n\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n\n' +
   // The font files never change, so browsers can keep them without asking again.
   '/fonts/*\n  Cache-Control: public, max-age=31536000, immutable\n\n' +
+  // CSS and JS are versioned by content hash (above); pages are checked on every visit.
+  '/css/*\n  Cache-Control: public, max-age=31536000, immutable\n\n/js/*\n  Cache-Control: public, max-age=31536000, immutable\n\n' +
   // Start pages that read the feeds in the browser need CORS.
   '/feed.xml\n  Access-Control-Allow-Origin: *\n\n/feed/*\n  Access-Control-Allow-Origin: *\n');
 
