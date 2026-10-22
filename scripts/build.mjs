@@ -1,7 +1,8 @@
 // Daily build for Cloudflare Pages: copies the site into dist/ and writes the newest
 // date's lines into the HTML, so crawlers and link previews see them without running
 // any JavaScript. Also writes one page per sign (/aries … /pisces), a link-preview
-// image per sign (drawn by scripts/og.html in headless Chrome), and a sitemap.
+// image per sign (drawn by scripts/og.html in headless Chrome), the embeddable widget
+// (/widget, /embed), RSS feeds (/feed.xml, /feed/<sign>.xml) and a sitemap.
 //
 //   node scripts/build.mjs [YYYY-MM-DD]
 //
@@ -49,13 +50,27 @@ async function lines(date) {
   return out;
 }
 
+// The week before the baked dates, for the RSS feeds: the Worker's public files.
+async function olderLines(newest, count) {
+  const data = read('index.html').match(/name="horoscope-data" content="([^"]+)"/)[1], out = [];
+  for (let i = 1; out.length < count && i <= count + 3; i++) {
+    const d = ymd(Date.parse(newest) - i * 86400000);
+    try {
+      const res = await fetch(data + '/data/' + d + '.json');
+      if (res.ok) out.push({ date: d, signs: (await res.json()).signs });
+    } catch (e) {}
+  }
+  return out;
+}
+
 function replace(html, find, to) {
   if (!html.includes(find)) throw new Error('Template changed, cannot find: ' + find);
   return html.replace(find, to);
 }
 
-// image: { url, alt } or null; ld: structured data (JSON-LD) objects.
-function setMeta(html, { title, description, url, image, ld = [] }) {
+// image: { url, alt } or null; ld: structured data (JSON-LD) objects; feed: the page's
+// own RSS feed, if it has one besides the one for all signs.
+function setMeta(html, { title, description, url, image, ld = [], feed }) {
   html = html.replace(/<title>[^<]*<\/title>/, '<title>' + esc(title) + '</title>');
   html = html.replace(/(<meta name="description" content=")[^"]*/, '$1' + esc(description));
   html = html.replace(/\s*<meta property="og:(title|description|type)"[^>]*>/g, '');
@@ -76,11 +91,13 @@ function setMeta(html, { title, description, url, image, ld = [] }) {
     ] : ['<meta name="twitter:card" content="summary" />']),
     '<meta name="twitter:title" content="' + esc(title) + '" />',
     '<meta name="twitter:description" content="' + esc(description) + '" />',
+    '<link rel="alternate" type="application/rss+xml" title="Daily AI Horoscope: all 12 signs" href="' + SITE + '/feed.xml" />',
+    ...(feed ? ['<link rel="alternate" type="application/rss+xml" title="' + esc(feed.title) + '" href="' + feed.url + '" />'] : []),
     ...ld.map((o) => '<script type="application/ld+json">' + JSON.stringify({ '@context': 'https://schema.org', ...o }).replace(/</g, '\\u003c') + '</script>')
   ];
   html = html.replace(/(<meta name="description"[^>]*>)/, () => html.match(/<meta name="description"[^>]*>/)[0] + '\n  ' + tags.join('\n  '));
-  // Pages serves /purpose and / without the .html.
-  return html.replace(/href="index\.html"/g, 'href="/"').replace(/href="purpose\.html"/g, 'href="/purpose"');
+  // Pages serves /purpose, /embed and / without the .html.
+  return html.replace(/href="index\.html"/g, 'href="/"').replace(/href="(purpose|embed)\.html"/g, 'href="/$1"');
 }
 
 // { "YYYY-MM-DD": { Aries: '…', … }, … } for every baked date (see lines()).
@@ -172,6 +189,7 @@ SIGNS.forEach((s, i) => {
   const line = lineOf(s), url = SITE + '/' + slug(s);
   write(slug(s) + '.html', signPage(index, day, i, {
     title: s.name + ' horoscope today · Daily AI Horoscope', url, image: imageOf(s),
+    feed: { title: 'Daily AI Horoscope: ' + s.name, url: SITE + '/feed/' + slug(s) + '.xml' },
     description: line ? s.name + ', ' + shown + ': “' + line + '” Written by AI, not the stars.' : 'Today’s ' + s.name + ' horoscope, written by an AI. No astrology. Does it still feel true?',
     ld: line ? [{
       '@type': 'Article', headline: s.name + ' horoscope for ' + shown, description: line, articleBody: line,
@@ -198,14 +216,56 @@ if (day) {
 }
 write('purpose.html', purpose);
 
+// The widget (/widget) for other sites' iframes, with the lines baked in like the pages,
+// and the page that makes its snippet (/embed).
+let widget = read('widget.html');
+if (day) widget = replace(widget, '<script src="js/signs.js">', bakedScript() + '<script src="js/signs.js">');
+write('widget.html', widget);
+const embedDescription = read('embed.html').match(/name="description" content="([^"]*)"/)[1];
+write('embed.html', setMeta(read('embed.html'), {
+  title: 'Free horoscope widget · Daily AI Horoscope', url: SITE + '/embed', description: embedDescription, image: imageOf(season)
+}));
+
+// RSS: every sign's line for the last week, newest first; one feed for all signs and one
+// per sign. The line is in the item title too, since start-page widgets often show only that.
+const feedDays = day ? [...days, ...(await olderLines(days[days.length - 1].date, Math.max(0, 7 - days.length)))] : [];
+const xml = (s) => esc(s).replace(/'/g, '&apos;');
+// A date starts at UTC+14, the first timezone to reach it.
+const pubDate = (d) => new Date(Date.parse(d + 'T00:00:00+14:00')).toUTCString();
+function feed(file, title, description, items) {
+  write(file, '<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n<channel>\n' +
+    '  <title>' + xml(title) + '</title>\n  <link>' + SITE + '/</link>\n  <description>' + xml(description) + '</description>\n' +
+    '  <language>en</language>\n  <ttl>360</ttl>\n  <atom:link href="' + SITE + '/' + file + '" rel="self" type="application/rss+xml" />\n' +
+    '  <image><url>' + SITE + '/media/brand/avatar-400.png</url><title>' + xml(title) + '</title><link>' + SITE + '/</link></image>\n' +
+    (feedDays.length ? '  <lastBuildDate>' + pubDate(feedDays[0].date) + '</lastBuildDate>\n' : '') +
+    items.map((it) => '  <item>\n    <title>' + xml(it.title) + '</title>\n    <link>' + it.link + '</link>\n' +
+      '    <guid isPermaLink="false">' + it.guid + '</guid>\n    <pubDate>' + it.date + '</pubDate>\n' +
+      '    <description>' + xml(it.text) + '</description>\n  </item>\n').join('') +
+    '</channel>\n</rss>\n');
+}
+const items = (d, list) => list.filter((s) => d.signs[dataKey(s)]).map((s) => {
+  const short = new Date(d.date + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const line = d.signs[dataKey(s)];
+  return {
+    title: s.name + ', ' + short + ': “' + line + '”', text: '“' + line + '” Written by an AI, not the stars.',
+    link: SITE + '/' + slug(s) + '?utm_source=rss&amp;utm_medium=feed', guid: 'dailyaihoroscope-' + slug(s) + '-' + d.date, date: pubDate(d.date)
+  };
+});
+fs.mkdirSync(path.join(OUT, 'feed'));
+feed('feed.xml', 'Daily AI Horoscope', 'Twelve horoscope-sounding lines written by an AI every day. No astrology.', feedDays.flatMap((d) => items(d, SIGNS)));
+SIGNS.forEach((s) => feed('feed/' + slug(s) + '.xml', 'Daily AI Horoscope: ' + s.name, 'Today’s ' + s.name + ' horoscope, written by an AI every day. No astrology.',
+  feedDays.flatMap((d) => items(d, [s]))));
+
 const lastmod = date;
-const urls = ['/', '/purpose', ...SIGNS.map((s) => '/' + slug(s))];
+const urls = ['/', '/purpose', '/embed', ...SIGNS.map((s) => '/' + slug(s))];
 write('sitemap.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
   urls.map((u) => '  <url><loc>' + SITE + (u === '/' ? '/' : u) + '</loc><lastmod>' + lastmod + '</lastmod><changefreq>daily</changefreq></url>').join('\n') + '\n</urlset>\n');
 write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE + '/sitemap.xml\n');
 // Keep the pages.dev copies out of search results; the real address is SITE.
 write('_headers', 'https://:project.pages.dev/*\n  X-Robots-Tag: noindex\n\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n\n' +
   // The font files never change, so browsers can keep them without asking again.
-  '/fonts/*\n  Cache-Control: public, max-age=31536000, immutable\n');
+  '/fonts/*\n  Cache-Control: public, max-age=31536000, immutable\n\n' +
+  // Start pages that read the feeds in the browser need CORS.
+  '/feed.xml\n  Access-Control-Allow-Origin: *\n\n/feed/*\n  Access-Control-Allow-Origin: *\n');
 
-console.log('Built dist/ for ' + (day ? Object.keys(baked).join(', ') : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 38 images' : '') + ')');
+console.log('Built dist/ for ' + (day ? Object.keys(baked).join(', ') : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 38 images' : '') + ', ' + (SIGNS.length + 1) + ' feeds)');

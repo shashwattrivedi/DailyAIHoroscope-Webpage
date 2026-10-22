@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- The embeddable widget (/widget), shown in an iframe on other sites; /embed makes the
+     snippet. ?sign=aries shows one sign; without it the visitor picks theirs (kept in
+     this browser). ?theme=color (default), dark or light. No analytics and no cookies:
+     only its links say where the visit came from (utm_source=widget). -->
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily AI Horoscope widget</title>
+  <meta name="description" content="Today’s horoscope, written by an AI. Free widget for your site." />
+  <meta name="robots" content="noindex" />
+  <meta name="horoscope-api" content="https://dailyaihoroscope-api.shashwatdevai.workers.dev" />
+  <meta name="horoscope-data" content="https://data.dailyaihoroscope.com" />
+  <meta name="site" content="https://dailyaihoroscope.com" />
+  <link rel="preload" href="fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="css/fonts.css" />
+  <style>
+    :root { --bg: #FF6BB5; --ink: #111111; --accent: #111111; --pill-ink: var(--bg); --line: rgba(17, 17, 17, .18); }
+    :root[data-theme="dark"] { --ink: #F5F3EE; --pill-ink: #111111; --line: rgba(245, 243, 238, .2); }
+    :root[data-theme="light"] { --ink: #111111; --pill-ink: #F5F3EE; --line: rgba(17, 17, 17, .14); }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; overflow: hidden;
+      background: var(--page, var(--bg)); color: var(--ink);
+      font-family: 'Outfit', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+    }
+    :root[data-theme="dark"] body { --page: #111111; }
+    :root[data-theme="light"] body { --page: #F5F3EE; }
+    a, button { color: inherit; font: inherit; }
+    button { cursor: pointer; }
+    .mono { font-family: 'Space Mono', ui-monospace, monospace; font-weight: 700; letter-spacing: .04em; }
+    [hidden] { display: none !important; }
+
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
+    .brand { font-weight: 800; text-decoration: none; white-space: nowrap; }
+    .pill { padding: 3px 9px; border-radius: 999px; background: var(--ink); color: var(--pill-ink); font-size: 11px; white-space: nowrap; }
+    :root:not([data-theme="color"]) .pill { background: var(--bg); color: #111111; }
+
+    .sign { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .name { margin: 0; font-size: 26px; font-weight: 900; line-height: 1; letter-spacing: -.01em; }
+    :root:not([data-theme="color"]) .glyph { color: var(--bg); }
+    .born { font-size: 11px; opacity: .75; }
+    .quote-box { flex: 1; min-height: 0; overflow: hidden; }
+    .quote { margin: 0; font-weight: 800; line-height: 1.15; }
+
+    .foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; border-top: 2px solid var(--line); font-size: 13px; font-weight: 800; }
+    .foot a { text-decoration: none; white-space: nowrap; }
+    .foot a:hover, .brand:hover { text-decoration: underline; }
+    .change { padding: 0; border: 0; background: none; font-size: 12px; font-weight: 700; text-decoration: underline; opacity: .8; }
+    .note { font-size: 11px; font-weight: 600; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .pick { flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+    .pick h1 { margin: 0; font-size: 20px; font-weight: 900; }
+    .grid { flex: 1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; align-content: center; }
+    .grid button {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 44px; padding: 4px 0;
+      border: 2px solid var(--ink); border-radius: 12px; background: var(--c); color: #111111; font-size: 18px; line-height: 1;
+    }
+    .grid button span { font-size: 9px; }
+    @media (max-width: 300px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+  </style>
+</head>
+
+<body>
+  <div class="top">
+    <a class="brand" id="brand" target="_blank" rel="noopener">Daily AI Horoscope</a>
+    <span class="pill mono" id="date"></span>
+  </div>
+
+  <div class="pick" id="pick" hidden>
+    <h1>Pick your sign</h1>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="sign" id="sign" hidden>
+    <h2 class="name"><span class="glyph" id="glyph"></span> <span id="name"></span></h2>
+    <span class="born mono" id="born"></span>
+  </div>
+  <div class="quote-box" id="box" hidden>
+    <blockquote class="quote" id="quote"></blockquote>
+  </div>
+
+  <div class="foot">
+    <a id="more" target="_blank" rel="noopener">All 12 signs →</a>
+    <button type="button" class="change" id="change" hidden>Change sign</button>
+    <span class="note" id="note" hidden>Written by AI, not the stars</span>
+  </div>
+
+  <script src="js/signs.js"></script>
+  <script src="js/widget.js"></script>
+</body>
+
+</html>

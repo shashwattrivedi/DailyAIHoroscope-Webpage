@@ -30,6 +30,8 @@ Glider.js : [GitHub - NickPiscitelli/Glider.js: A fast, lightweight, dependency 
 - `js/app.js`: rendering, constellation animation, planets, parallax, share and save-as-image.
 - `js/constellations.js`: constellation figures. `js/signs.js`: signs, dates and colours.
 - `js/astronomy.browser.min.js`: [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT), used for today's planet positions.
+- `widget.html` + `js/widget.js`: the embeddable widget (`/widget?sign=aries&theme=dark`, or no sign to let the visitor pick), for other sites' iframes. No analytics or cookies; its links carry `utm_source=widget` and the embedding site's host.
+- `embed.html` + `js/embed.js`: `/embed`, where site owners pick a sign, look and size, preview the widget and copy the snippet; also lists the RSS feeds.
 - `worker/`: the Cloudflare Worker that writes the horoscopes (see below).
 - `scripts/build.mjs`: the daily build (see below).
 
@@ -41,6 +43,8 @@ The pages work as they are (open `index.html` from any static server). The API a
 
 - a page per sign (`/aries` … `/pisces`), each with its own title, description and structured data (JSON-LD `Article`);
 - a 1200×630 link-preview image per sign (`og/<sign>-<date>.png`), drawn by `scripts/og.html` in headless Chrome (set `CHROME_PATH` if Chrome isn't in the usual place; without Chrome the images are skipped);
+- the widget with the lines baked in, like the pages;
+- RSS feeds of the last week's lines: `feed.xml` (all signs) and `feed/<sign>.xml`, linked from the pages;
 - `sitemap.xml`, `robots.txt`, and `_headers` (keeps the `pages.dev` copies out of search). Visitors still get their own local date: the page swaps to it on load if it differs.
 
 `.github/workflows/deploy.yml` runs the build and deploys `dist/` to the Cloudflare Pages project `dailyaihoroscope` on every push, and daily when the Worker starts it at 10:00 UTC, right after a new date starts (no GitHub schedule, because GitHub turns those off after 60 days without commits; the Worker needs the `GH_DISPATCH_TOKEN` secret, a fine-grained token for this repo with Actions: Read and write). It needs the repository secrets `CLOUDFLARE_API_TOKEN` (permission: Account > Cloudflare Pages > Edit) and `CLOUDFLARE_ACCOUNT_ID`.
