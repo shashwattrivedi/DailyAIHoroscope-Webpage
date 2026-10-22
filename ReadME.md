@@ -2,6 +2,8 @@
 
 This repository contains the frontend files for the website [dailyaihoroscope.com](https://dailyaihoroscope.com). The website is created for fun experiment exploring [Barnum effect](https://en.wikipedia.org/wiki/Barnum_effect) and horoscope. Horoscope are generally vague and written in such a way to cover normal aspects of everyone's life. This websites uses a language model to generate 12 random sentences that sound like horoscope ( there is no guarentee but the model is trained to produced such sentences ). Website intends to know if people still find these random sentences on this website relevant and accurate for their day. People are encouraged to share their interpretation for the horoscope and share their story which matches with the horoscope.
 
+Follow the daily lines on [Instagram](https://www.instagram.com/dailyaihoroscope/), [Facebook](https://www.facebook.com/dailyaihoroscope) and [Bluesky](https://bsky.app/profile/dailyaihoroscope.com).
+
 Reiterating the disclaimer again
 
 > **Disclaimer**: Horoscopes do not generally contain any instruction for the reader, but the horoscopes on this page may contain instructions as do not go through any scrutiny. These 12 sentences are produced randomly by an unmonitored model. Please do not follow any instructions mentioned in any horoscope. I do not want anyone following any instructions given by AI. This holds for anything that you read online; please use your discretion. I will not be responsible for anything you follow after reading the horoscope.

@@ -174,7 +174,11 @@ for (const dir of COPY) fs.cpSync(path.join(ROOT, dir), path.join(OUT, dir), { r
 const images = await drawImages(date, lineOf);
 const imageOf = (s) => images ? { url: SITE + '/og/' + slug(s) + '-' + date + '.png', alt: s.name + ': ' + (lineOf(s) || 'today’s horoscope, written by AI') } : null;
 
-const ORG = { '@type': 'Organization', name: 'Daily AI Horoscope', url: SITE + '/', sameAs: ['https://github.com/shashwattrivedi/DailyAIHoroscope-Webpage'] };
+// The site's own accounts. Listing them here (and linking them with rel="me" on the
+// purpose page) tells search engines they belong to dailyaihoroscope.com.
+const PROFILES = ['https://www.instagram.com/dailyaihoroscope/', 'https://www.facebook.com/dailyaihoroscope',
+  'https://bsky.app/profile/dailyaihoroscope.com', 'https://github.com/shashwattrivedi/DailyAIHoroscope-Webpage'];
+const ORG = { '@type': 'Organization', name: 'Daily AI Horoscope', url: SITE + '/', logo: SITE + '/media/brand/avatar-400.png', sameAs: PROFILES };
 const index = read('index.html');
 const [, m, d] = date.split('-').map(Number);
 const season = SIGNS[signIndex(m, d)];
@@ -206,7 +210,7 @@ let purpose = setMeta(read('purpose.html'), {
   ld: [{
     '@type': 'WebPage', name: 'Why it feels true', url: SITE + '/purpose', description: purposeDescription,
     about: { '@type': 'Thing', name: 'Barnum effect', sameAs: 'https://en.wikipedia.org/wiki/Barnum_effect' },
-    isPartOf: { '@type': 'WebSite', name: 'Daily AI Horoscope', url: SITE + '/' }
+    isPartOf: { '@type': 'WebSite', name: 'Daily AI Horoscope', url: SITE + '/' }, publisher: ORG
   }]
 });
 if (day) {
