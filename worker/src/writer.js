@@ -116,29 +116,36 @@ export function problems(line) {
   return found;
 }
 
-// Asks the model up to 3 times and keeps the first answer with no problems, or else the
-// one with the fewest (and logs them).
-export async function write(env, previous) {
+const SYSTEM = 'You write short horoscopes in the voice of a newspaper astrology column, for a light-hearted experiment about the Barnum effect.';
+
+// The request for one model. model: { id, options, format } from MODELS in wrangler.jsonc;
+// options are model-specific (e.g. turning thinking off). format "responses" is for
+// models that take OpenAI's Responses input (gpt-oss): with chat messages they spend the
+// whole answer on reasoning.
+function request(model, ask) {
+  if (model.format === 'responses') return { instructions: SYSTEM, input: ask, ...(model.options || {}) };
+  return {
+    messages: [{ role: 'system', content: SYSTEM }, { role: 'user', content: ask }],
+    max_tokens: 1200,
+    temperature: 0.9,
+    ...(model.options || {})
+  };
+}
+
+// Asks the model up to 3 times with the same prompt and keeps the first answer with no
+// problems, or else the one with the fewest. Returns { signs, issues: { Sign: [problem] } }.
+export async function write(env, model, ask) {
   let best = null, last = '';
+  const count = (x) => Object.keys(x.issues).length;
   for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await env.AI.run(env.MODEL, {
-      messages: [
-        { role: 'system', content: 'You write short horoscopes in the voice of a newspaper astrology column, for a light-hearted experiment about the Barnum effect.' },
-        { role: 'user', content: prompt(previous) }
-      ],
-      max_tokens: 1200,
-      temperature: 0.9,
-      // Model-specific options from wrangler.jsonc, e.g. turning thinking off.
-      ...(env.MODEL_OPTIONS || {})
-    });
-    last = text(res);
+    last = text(await env.AI.run(model.id, request(model, ask)));
     const signs = parse(last);
     if (!signs) continue;
-    const issues = SIGNS.flatMap((s) => problems(signs[s]).map((p) => s + ': ' + p));
-    if (!best || issues.length < best.issues.length) best = { signs, issues };
-    if (!issues.length) break;
+    const issues = Object.fromEntries(SIGNS.map((s) => [s, problems(signs[s])]).filter(([, p]) => p.length));
+    if (!best || count({ issues }) < count(best)) best = { signs, issues };
+    if (!count(best)) break;
   }
-  if (!best) throw new Error('Model output did not contain 12 signs: ' + last.slice(0, 300));
-  if (best.issues.length) console.log('[write] kept with ' + best.issues.join('; '));
-  return best.signs;
+  if (!best) throw new Error(model.id + ': output did not contain 12 signs: ' + last.slice(0, 300));
+  if (count(best)) console.log('[write] ' + model.id + ' kept with ' + JSON.stringify(best.issues));
+  return best;
 }

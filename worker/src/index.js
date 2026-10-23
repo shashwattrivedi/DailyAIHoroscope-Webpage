@@ -10,7 +10,7 @@
 // data/YYYY-MM-DD.json, which the CDN serves to visitors without running this Worker.
 // /v1/horoscope is only the fallback.
 
-import { write } from './writer.js';
+import { writeDay } from './arena.js';
 import { share } from './social.js';
 import { buildSite, imagesLive, checkTokens, tokenProblems, alert } from './ops.js';
 import { updateStats } from './stats.js';
@@ -30,21 +30,26 @@ function datesBetween(a, b) {
   return out;
 }
 
+// Every model writes the day and one line per sign is chosen (arena.js).
 async function generate(env, date) {
   const prev = await env.HOROSCOPES.get('day:' + ymd(Date.parse(date) - DAY), 'json');
-  const signs = await write(env, prev && prev.signs);
-  return { date, signs, model: env.MODEL, createdAt: new Date().toISOString() };
+  return writeDay(env, date, prev && prev.signs);
 }
 
 // The R2 file is the final version of a day. If two requests write the same missing
 // day at once, the first upload wins and the other request uses that file instead of
 // its own lines, so the CDN, KV and the API always agree. KV only stores what was
-// published.
+// published, and only the winner keeps its record of which model wrote which line.
 async function ensure(env, date) {
   const key = 'day:' + date;
   const have = await env.HOROSCOPES.get(key, 'json');
   if (have) return have;
-  const day = (await published(env, date)) || (await publish(env, await generate(env, date)));
+  let day = await published(env, date);
+  if (!day) {
+    const written = await generate(env, date);
+    day = await publish(env, { date, signs: written.signs });
+    if (day.signs === written.signs) await written.save();
+  }
   await env.HOROSCOPES.put(key, JSON.stringify(day));
   return day;
 }

@@ -18,6 +18,15 @@
     // Gemma 4 thinks before answering unless told not to, and then runs out of tokens.
     "MODEL": "@cf/google/gemma-4-26b-a4b-it",
     "MODEL_OPTIONS": { "chat_template_kwargs": { "enable_thinking": false } },
+    // The arena (arena.js): every model writes all 12 lines from the same prompt, and each
+    // sign shows one model's line, shared equally. Leave a model out to stop using it;
+    // MODEL is the fallback. format "responses": the model takes OpenAI's Responses input.
+    "MODELS": [
+      { "id": "@cf/google/gemma-4-26b-a4b-it", "options": { "chat_template_kwargs": { "enable_thinking": false } } },
+      { "id": "@cf/meta/llama-3.3-70b-instruct-fp8-fast" },
+      { "id": "@cf/openai/gpt-oss-120b", "format": "responses", "options": { "reasoning": { "effort": "low" } } },
+      { "id": "@cf/mistralai/mistral-small-3.1-24b-instruct" }
+    ],
     "SITE": "https://dailyaihoroscope.com",
     // Platforms to post to, in this order: bluesky, x, facebook, instagram, instagram_story, reddit.
     // Each run posts what fits in 50 requests, so the first ones post soonest.
