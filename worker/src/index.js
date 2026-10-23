@@ -11,6 +11,7 @@
 // /v1/horoscope is only the fallback.
 
 import { writeDay } from './arena.js';
+import { vote, cleanup } from './votes.js';
 import { share } from './social.js';
 import { buildSite, imagesLive, checkTokens, tokenProblems, alert } from './ops.js';
 import { updateStats } from './stats.js';
@@ -74,7 +75,8 @@ async function publish(env, day) {
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS'
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type'
 };
 const json = (body, status = 200, extra = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', ...cors, ...extra } });
@@ -98,6 +100,12 @@ export default {
       if (!day) return json({ error: 'No horoscope for this date.' }, 404);
       const settled = date < first; // no longer "today" anywhere, will never change
       return json({ date: day.date, signs: day.signs }, 200, { 'Cache-Control': settled ? 'public, max-age=86400' : 'public, max-age=300' });
+    }
+
+    // Votes on a line (votes.js): for dates that are today somewhere, with an hour's grace.
+    if (url.pathname === '/v1/vote') {
+      const [first] = window_(Date.now() - 3600000), [, last] = window_(Date.now());
+      return vote(req, env, (date) => /^\d{4}-\d{2}-\d{2}$/.test(date) && date >= first && date <= last);
     }
 
     if (url.pathname === '/dashboard') return dashboard(req, env);
@@ -147,6 +155,7 @@ export default {
 
     if (onHour) await updateStats(env, now).catch((e) => console.log('[stats] ' + e.message));
     if (lastRun) await dailyReport(env, now).catch((e) => console.log('[report] ' + e.message));
+    if (lastRun) await cleanup(env, now).catch((e) => console.log('[votes] ' + e.message));
     if (hour === 10) {
       const tokens = await checkTokens(env, now);
       await env.HOROSCOPES.put('tokens', JSON.stringify(tokens));

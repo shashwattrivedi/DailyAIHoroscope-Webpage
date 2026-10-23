@@ -178,7 +178,8 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     const desk = isDesktop();
     const wasScroll = document.documentElement.classList.contains('scroll');
     const max = desk ? 52 : 34, min = desk ? 28 : 16;
-    const minGap = desk ? 24 : Math.min(170, H * 0.2);
+    // Short phones (an SE, 360x640) give the sky less, so the vote row still fits.
+    const minGap = desk ? 24 : Math.min(170, H * (H < 700 ? 0.12 : 0.2));
     // Room left for the sky. The same in both modes: the gap is the only flexible part.
     const room = () => H - (els.app.scrollHeight - els.gap.offsetHeight);
     let size = max;
@@ -286,7 +287,7 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     els.tip.hidden = false;
   }
 
-  const colourEls = document.querySelectorAll('.date-pill, .all-signs, .share, .chips');
+  const colourEls = document.querySelectorAll('.date-pill, .all-signs, .share, .chips, .vote');
   function renderText() {
     const s = SIGNS[state.sel];
     // The sign's colour goes only where it's used: --bg on the root would make the browser
@@ -311,6 +312,7 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     els.chips.querySelectorAll('.chip').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
     els.tiles.querySelectorAll('.tile').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
     els.shareLabel.textContent = 'Felt the same? Share it';
+    renderVote();
     // The widget page opens on the sign shown here.
     widgetLinks.forEach((a) => { a.href = a.dataset.base + '?sign=' + signSlug(s); });
     if (lines) prewarm();
@@ -440,6 +442,60 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     if (e.key === 'ArrowRight') select((state.sel + 1) % 12);
     if (e.key === 'ArrowLeft') select((state.sel + 11) % 12);
   });
+
+  // ---------- "Felt true?" ----------
+  // One vote per sign and date; voting again changes it. The Worker (votes.js) works out
+  // which model wrote the line, so the page never knows. Kept in localStorage:
+  // dah.voter, a random ID, and dah.votes, { date: { Sign: { felt, yes, total } } }.
+
+  const VOTES = 'dah.votes';
+  const voteEls = { box: $('vote'), q: $('voteQ'), btns: document.querySelectorAll('.vote-btn') };
+  const read = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+  const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+  function voter() {
+    let id = read('dah.voter');
+    if (!id) write('dah.voter', (id = crypto.randomUUID ? crypto.randomUUID() : Array.from(crypto.getRandomValues(new Uint8Array(16)), (b, i) => b.toString(16).padStart(2, '0') + ([3, 5, 7, 9].includes(i) ? '-' : '')).join('')));
+    return id;
+  }
+
+  const myVote = () => ((read(VOTES) || {})[localDate(now)] || {})[dataKey(SIGNS[state.sel])];
+
+  function renderVote(note) {
+    const has = lines && lines[dataKey(SIGNS[state.sel])];
+    voteEls.box.hidden = !has;
+    if (!has) return;
+    const v = myVote();
+    voteEls.btns.forEach((b) => b.setAttribute('aria-pressed', v && String(+v.felt) === b.dataset.felt ? 'true' : 'false'));
+    // The question, or after a vote how many said yes; one short line, so the row never wraps.
+    voteEls.q.textContent = note || (v && v.total ? Math.round((100 * v.yes) / v.total) + '% said yes · ' + v.total : 'Felt true?');
+  }
+
+  async function castVote(felt) {
+    const date = localDate(now), sign = dataKey(SIGNS[state.sel]);
+    const all = read(VOTES) || {};
+    // Keep the last few dates only.
+    Object.keys(all).sort().slice(0, -3).forEach((d) => delete all[d]);
+    const before = (all[date] || {})[sign];
+    (all[date] ||= {})[sign] = { felt, yes: 0, total: 0 };
+    write(VOTES, all);
+    renderVote('Saving…');
+    track('vote', { sign: SIGNS[state.sel].name, felt: felt ? 'yes' : 'no' });
+    try {
+      const api = document.querySelector('meta[name="horoscope-api"]').content;
+      // Plain text, so the browser sends it without asking the Worker first (no preflight).
+      const res = await fetch(api + '/v1/vote', { method: 'POST', body: JSON.stringify({ date, sign, felt, voter: voter() }) });
+      const t = await res.json();
+      if (!res.ok) throw new Error(t.error || res.status);
+      all[date][sign] = { felt, yes: t.yes, total: t.total };
+      write(VOTES, all);
+      if (sign === dataKey(SIGNS[state.sel])) renderVote();
+    } catch (e) {
+      if (before) all[date][sign] = before; else delete all[date][sign];
+      write(VOTES, all);
+      if (sign === dataKey(SIGNS[state.sel])) renderVote('Not saved. Again?');
+    }
+  }
 
   // ---------- Share and save ----------
 
@@ -675,6 +731,7 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   $('scrim').addEventListener('click', closeSheet);
   $('tipClose').addEventListener('click', () => setFocus(null));
   $('share').addEventListener('click', share);
+  voteEls.btns.forEach((b) => b.addEventListener('click', () => castVote(b.dataset.felt === '1')));
   $('save').addEventListener('click', save);
   $('followRow').addEventListener('click', (event) => {
     const link = event.target.closest('[data-platform]');

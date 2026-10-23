@@ -40,7 +40,7 @@
       'font:600 14px/1.4 Outfit,system-ui,sans-serif;box-shadow:0 12px 32px rgba(0,0,0,.35)';
     const text = document.createElement('span');
     text.style.flex = '1 1 240px';
-    text.textContent = 'May we use Google Analytics cookies to count visits? Nothing else is tracked.';
+    text.textContent = 'May we use Google Analytics cookies to count visits? No other cookies are used.';
     bar.append(text);
     [['Accept', 'granted'], ['No thanks', 'denied']].forEach(([label, value], i) => {
       const b = document.createElement('button');

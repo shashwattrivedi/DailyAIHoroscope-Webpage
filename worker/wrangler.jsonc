@@ -11,6 +11,11 @@
   "r2_buckets": [
     { "binding": "DATA", "bucket_name": "dailyaihoroscope-data" }
   ],
+  // Votes on the lines (votes.js; private). Tables: migrations/, applied with
+  // `npx wrangler d1 migrations apply dailyaihoroscope-votes --remote`.
+  "d1_databases": [
+    { "binding": "VOTES", "database_name": "dailyaihoroscope-votes", "database_id": "1a9810fb-08e8-4029-b53f-0be97dc3ec3f" }
+  ],
   // Settings only. Keys and passwords are secrets: `npx wrangler secret put NAME`
   // (see .dev.vars.example), never in this file.
   "vars": {

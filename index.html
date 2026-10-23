@@ -80,6 +80,13 @@
       <div class="quote-box" id="quoteBox" aria-live="polite">
         <blockquote class="quote" id="quote"></blockquote>
       </div>
+      <!-- "Did this feel true?" (app.js; the Worker records which model wrote the line). -->
+      <div class="vote" id="vote" role="group" aria-labelledby="voteQ" hidden>
+        <!-- After a vote: how many said yes (app.js). -->
+        <span class="vote-q" id="voteQ" aria-live="polite">Felt true?</span>
+        <button type="button" class="vote-btn" data-felt="1" aria-pressed="false">Yes</button>
+        <button type="button" class="vote-btn" data-felt="0" aria-pressed="false">No</button>
+      </div>
     </main>
 
     <footer class="actions" id="actions">

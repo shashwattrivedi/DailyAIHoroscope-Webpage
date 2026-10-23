@@ -67,6 +67,12 @@ A Cloudflare Worker writes 12 lines per calendar date with Workers AI and stores
 - Each sign gets two random moods, a life area and a way of opening; the lines ignore the sign's traditional traits. The prompt (`worker/src/writer.js`) asks for the voice of a newspaper horoscope, shaped by style statistics of ~13,000 published horoscopes (length, "you", predictions, life areas, openings; no text from them is used). Each line is checked for advice, health or money, sign names, clichés and length, and the day is rewritten (up to 3 times) if any fails.
 - `GET /v1/horoscope?date=YYYY-MM-DD` returns `{ date, signs: { Aries: "...", ... } }`. Dates that have not started anywhere yet return 404.
 
+## Model arena and votes (#19)
+
+- **Several models write each day** (`worker/src/arena.js`). Every model in `MODELS` (`wrangler.jsonc`: Gemma 4, Llama 3.3 70B, gpt-oss-120b, Mistral Small 3.1) gets the same prompt and writes all 12 lines. One line per sign is chosen: an equal share per model (3 each with 4 models), each sign to the model that has written it least, only lines that pass the checks, ties broken by a secure random number. Everyone sees the same 12 lines; nothing public says which model wrote which.
+- **Private until published:** which model wrote each line, and the lines not chosen, are in KV (`arena:<date>`; running totals in `arena:counts`). The public day file, pages, widget and feeds only have the 12 chosen lines.
+- **Votes** (`worker/src/votes.js`): under each line, "Felt true? Yes / No". `POST /v1/vote { date, sign, felt, voter }` (only from the site, only while the date is today somewhere) stores the vote with the model that wrote the line in the D1 database `dailyaihoroscope-votes` (tables in `worker/migrations/`) and answers `{ yes, total }` for that line; `GET /v1/vote?date=&sign=` answers the tally. One vote per random visitor ID, date and sign (voting again changes it), at most 60 per IP address a day (kept only as a salted hash, deleted after a week).
+
 ## Social media (worker/src/social.js)
 
 At 12:00 UTC, after the site build has published the day's images, the Worker starts sharing the lines. The Workers Free plan allows 50 outgoing requests per run and a full day needs over 100, so it posts every 10 minutes until 13:50, as much as fits in each run, in the order of `SOCIAL` (14:00 is the last try):
