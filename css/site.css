@@ -152,6 +152,14 @@ h1 { margin: 0; width: max-content; white-space: nowrap; font-weight: 900; font-
 .follow-icon:hover { background: rgba(17, 17, 17, .08); }
 .follow-icon:focus-visible, .foot-follow-icon:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }
 .follow-icon svg, .foot-follow-icon svg { width: 22px; height: 22px; }
+.get-widget {
+  margin-left: auto; min-height: 44px; display: inline-flex; align-items: center; gap: 6px;
+  color: var(--ink); font-size: 14px; font-weight: 700; white-space: nowrap;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.get-widget:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; border-radius: 8px; }
+/* "Follow for tomorrow's line" needs the room for a moment. */
+.follow-row.prompting .get-widget { display: none; }
 .share {
   flex: 1;
   min-height: 56px;
@@ -212,6 +220,12 @@ h1 { margin: 0; width: max-content; white-space: nowrap; font-weight: 900; font-
 .tile-top span + span { font-size: 13px; letter-spacing: .06em; }
 .tile-name { font-size: 15px; font-weight: 800; }
 .tile-dates { font-size: 11px; font-weight: 600; }
+.sheet-widget {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 10px 14px;
+  border: 2px dashed #E4E2DD; border-radius: 16px; color: #111111; font-size: 14px; font-weight: 600; text-decoration: none;
+}
+.sheet-widget b { display: block; font-size: 15px; font-weight: 800; }
+.sheet-widget svg { flex: none; }
 
 /* Desktop: chips, birthday selects, big type, sky on the right */
 @media (min-width: 900px) and (min-height: 560px) {
@@ -249,7 +263,8 @@ h1 { margin: 0; width: max-content; white-space: nowrap; font-weight: 900; font-
   .actions { padding-top: 24px; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
   .follow-row { flex: none; }
   .share { flex: none; width: 340px; min-height: 60px; }
-  .why { margin-left: auto; width: 440px; min-height: 60px; padding: 8px 10px 8px 20px; border-radius: 20px; }
+  /* Shrinks to 330px before it wraps under the Share and Follow rows. */
+  .why { margin-left: auto; flex: 1 1 330px; max-width: 440px; min-height: 60px; padding: 8px 10px 8px 20px; border-radius: 20px; }
   .why-kicker { font-size: 12px; }
   .why-title { font-size: 17px; }
   .why-arrow { width: 42px; height: 42px; }

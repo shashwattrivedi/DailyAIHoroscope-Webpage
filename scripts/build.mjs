@@ -228,9 +228,18 @@ write('purpose.html', purpose);
 let widget = read('widget.html');
 if (day) widget = replace(widget, '<script src="js/signs.js">', bakedScript() + '<script src="js/signs.js">');
 write('widget.html', widget);
-const embedDescription = read('embed.html').match(/name="description" content="([^"]*)"/)[1];
-write('embed.html', setMeta(read('embed.html'), {
-  title: 'Free horoscope widget · Daily AI Horoscope', url: SITE + '/embed', description: embedDescription, image: imageOf(season)
+const embedHtml = read('embed.html');
+const embedDescription = embedHtml.match(/name="description" content="([^"]*)"/)[1];
+// The questions at the bottom of /embed, as structured data.
+const plain = (h) => h.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+const faq = [...embedHtml.matchAll(/<summary>([\s\S]*?)<\/summary><p>([\s\S]*?)<\/p>/g)]
+  .map(([, q, a]) => ({ '@type': 'Question', name: plain(q), acceptedAnswer: { '@type': 'Answer', text: plain(a) } }));
+write('embed.html', setMeta(embedHtml, {
+  title: 'Free horoscope widget for your website · Daily AI Horoscope', url: SITE + '/embed', description: embedDescription, image: imageOf(season),
+  ld: [
+    { '@type': 'WebPage', name: 'Free daily horoscope widget for your website', url: SITE + '/embed', description: embedDescription, publisher: ORG },
+    ...(faq.length ? [{ '@type': 'FAQPage', mainEntity: faq }] : [])
+  ]
 }));
 
 // RSS: every sign's line for the last week, newest first; one feed for all signs and one

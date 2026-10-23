@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Free horoscope widget · Daily AI Horoscope</title>
-  <meta name="description" content="Put today’s AI-written horoscope on your site or start page. Free, no sign-up, no cookies. Copy one line of code, or use the RSS feeds." />
+  <title>Free horoscope widget for your website · Daily AI Horoscope</title>
+  <meta name="description" content="A free daily horoscope widget for your website, blog or Notion page. Copy one line of HTML: no sign-up, no cookies, and it updates itself every day. RSS feeds too." />
   <meta name="theme-color" content="#111111" />
   <link rel="icon" href="media/horoscope.svg" type="image/svg+xml" />
   <link rel="preload" href="fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin />
@@ -40,6 +40,19 @@
     .feeds a { font-weight: 700; }
     .feeds li:first-child { grid-column: 1 / -1; }
     .small { font-size: 15px !important; color: rgba(245, 243, 238, .7); }
+    .link-row { display: flex; gap: 8px; margin-top: 18px; }
+    .link-row input {
+      flex: 1; min-width: 0; min-height: 44px; padding: 0 12px; border: 2px solid rgba(245, 243, 238, .25); border-radius: 12px;
+      background: #1C1C1C; color: #F5F3EE; font: 700 13px 'Space Mono', ui-monospace, monospace;
+    }
+    .link-row .copy { margin-top: 0; background: #F5F3EE; }
+    .how { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+    .how article { padding: 16px 18px; border-radius: 16px; background: #1C1C1C; }
+    .how h3 { margin: 0 0 6px; font-size: 18px; font-weight: 900; }
+    .how p { font-size: 15px; line-height: 1.45; color: rgba(245, 243, 238, .8); }
+    .faq details { padding: 14px 0; border-bottom: 1px solid #2E2E2E; }
+    .faq summary { cursor: pointer; font-size: 18px; font-weight: 800; }
+    .faq details p { margin-top: 8px; font-size: 16px; color: rgba(245, 243, 238, .8); }
   </style>
   <!-- Google Analytics (loads after the page; see the file). -->
   <script src="js/analytics.js" defer></script>
@@ -57,8 +70,8 @@
 
     <main class="embed">
       <span class="kicker">FREE WIDGET · NO SIGN-UP · NO COOKIES</span>
-      <h1>Put today’s horoscope on your site</h1>
-      <p class="lead">A small card with the day’s line, written by an AI. It updates itself every day in each visitor’s own timezone. Copy one line of HTML, or add a feed to your start page.</p>
+      <h1>Free daily horoscope widget for your website</h1>
+      <p class="lead">A small card with the day’s horoscope, written by an AI. It updates itself every day in each visitor’s own timezone. Pick a sign or let visitors pick theirs, copy one line of HTML, and you’re done.</p>
 
       <div class="opts">
         <label class="kicker">SIGN<select id="sign"><option value="">Visitor picks their sign</option></select></label>
@@ -81,14 +94,40 @@
         <textarea id="snippet" readonly spellcheck="false"></textarea>
         <button type="button" class="copy" id="copy">Copy code</button>
       </div>
-      <p class="small">Works anywhere you can paste HTML: WordPress (Custom HTML block), Blogger, Notion (/embed), Wix and Squarespace (Embed block), and start pages such as start.me (Embed widget).</p>
+      <div class="code">
+        <label class="kicker" for="link">OR JUST THE LINK (NOTION, START PAGES)</label>
+        <div class="link-row">
+          <input id="link" readonly spellcheck="false" />
+          <button type="button" class="copy" id="copyLink">Copy link</button>
+        </div>
+      </div>
+
+      <h2>How to add it</h2>
+      <div class="how">
+        <article><h3>WordPress</h3><p>In the editor, add a <b>Custom HTML</b> block and paste the code. For a sidebar: Appearance → Widgets → Custom HTML. On WordPress.com, embedding code may need a plan that allows it.</p></article>
+        <article><h3>Wix</h3><p>Add (+) → <b>Embed Code</b> → <b>Embed HTML</b>, choose “Code”, paste it, then resize the box to the widget’s size.</p></article>
+        <article><h3>Squarespace</h3><p>Add a <b>Code</b> block (or an Embed block with “Code snippet”) and paste the code.</p></article>
+        <article><h3>Blogger</h3><p>Layout → <b>Add a Gadget</b> → <b>HTML/JavaScript</b>, paste the code and save.</p></article>
+        <article><h3>Google Sites</h3><p>Insert → <b>Embed</b> → “Embed code”, paste the code, then drag the box to size.</p></article>
+        <article><h3>Notion</h3><p>Type <b>/embed</b>, paste the <b>link</b> (not the code) and resize the block. Works on dashboards and journal pages.</p></article>
+        <article><h3>Start pages</h3><p>start.me, Protopage and similar: add an embed or web widget with the link, or a feed widget with one of the RSS feeds below.</p></article>
+        <article><h3>Any other site</h3><p>Paste the code anywhere your site lets you add HTML. It’s a plain iframe: no scripts to install.</p></article>
+      </div>
 
       <h2>RSS feeds</h2>
       <p>For start pages and feed readers (start.me, Protopage, Feedly, Inoreader, Homepage, Glance…). A new line every day.</p>
       <ul class="feeds" id="feeds"></ul>
 
-      <h2>The small print</h2>
-      <p class="small">Free for any site. The lines are written by an AI as an experiment on the <a href="purpose.html">Barnum effect</a>; they aren’t astrology or advice. The widget sets no cookies and runs no analytics. Its links tell this site only which website the visit came from.</p>
+      <h2>Questions</h2>
+      <div class="faq">
+        <details><summary>Is it really free?</summary><p>Yes, for any site, personal or commercial. No sign-up, no key, no limits.</p></details>
+        <details><summary>Does it set cookies or track my visitors?</summary><p>No. The widget sets no cookies and runs no analytics. Its links only tell this site which website a visit came from.</p></details>
+        <details><summary>How often does it change?</summary><p>Every day. Each visitor sees the line for their own date, so it switches at their local midnight.</p></details>
+        <details><summary>Can visitors choose their own sign?</summary><p>Yes. Leave the sign on “Visitor picks their sign” and each visitor picks once; the widget remembers it in their browser.</p></details>
+        <details><summary>Will it slow my page down?</summary><p>No. It’s small, and the iframe loads lazily, after the rest of your page.</p></details>
+        <details><summary>Is it real astrology?</summary><p>No. The lines are written by an AI as an experiment on the Barnum effect: why vague lines feel personal. They aren’t advice.</p></details>
+      </div>
+      <p class="small">More about the experiment: <a href="purpose.html">why it still feels true</a>.</p>
     </main>
   </div>
 

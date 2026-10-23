@@ -18,6 +18,11 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     sheet: $('sheet'), tiles: $('tiles'), openSheet: $('openSheet')
   };
   document.querySelector('.follow-icons').innerHTML = followLinks();
+  const widgetLinks = [$('getWidget'), $('sheetWidget')];
+  widgetLinks.forEach((a) => {
+    a.dataset.base = a.getAttribute('href');
+    a.addEventListener('click', () => track('widget_click', { from: a.dataset.from }));
+  });
 
   let now = new Date();
   // Lines for the visitor's own calendar date; null while loading.
@@ -286,6 +291,8 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     els.chips.querySelectorAll('.chip').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
     els.tiles.querySelectorAll('.tile').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
     els.shareLabel.textContent = 'Felt the same? Share it';
+    // The widget page opens on the sign shown here.
+    widgetLinks.forEach((a) => { a.href = a.dataset.base + '?sign=' + signSlug(s); });
     if (lines) prewarm();
   }
 
@@ -439,8 +446,9 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   function followPrompt() {
     const label = $('followPrompt');
     label.textContent = "Follow for tomorrow's line";
+    $('followRow').classList.add('prompting');
     clearTimeout(followPrompt.t);
-    followPrompt.t = setTimeout(() => { label.textContent = 'Follow'; }, 2400);
+    followPrompt.t = setTimeout(() => { label.textContent = 'Follow'; $('followRow').classList.remove('prompting'); }, 2400);
   }
 
   // The card image is drawn ahead of time so sharing starts straight from the tap

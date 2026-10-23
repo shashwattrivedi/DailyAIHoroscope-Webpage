@@ -12,9 +12,13 @@
   // Where the widget is shown, so the site's analytics can tell embeds apart.
   let host = 'direct';
   try { host = document.referrer ? new URL(document.referrer).hostname : 'direct'; } catch (e) {}
-  const link = (path) => site + path + '?utm_source=widget&utm_medium=embed&utm_campaign=' + encodeURIComponent(host);
+  const link = (path, query) => site + path + '?' + (query ? query + '&' : '') +
+    'utm_source=widget&utm_medium=embed&utm_campaign=' + encodeURIComponent(host);
   $('brand').href = link('/');
   $('more').href = link('/');
+  // "Get this widget": the snippet page, set to this widget's sign and look.
+  const get = (s) => { $('get').href = link('/embed', (s ? 'sign=' + signSlug(s) + '&' : '') + 'theme=' + theme + '&utm_content=get'); };
+  get(null);
 
   const now = new Date(), date = localDate(now);
   $('date').textContent = now.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', '').toUpperCase();
@@ -46,6 +50,7 @@
     $('born').textContent = s.dates;
     $('more').textContent = 'Read more →';
     $('more').href = link('/' + signSlug(s));
+    get(fixed);
     $('quote').textContent = '…';
     await loading;
     const line = lines && lines[dataKey(s)];
