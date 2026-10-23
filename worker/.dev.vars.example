@@ -21,7 +21,8 @@ GA_SERVICE_ACCOUNT=
 BLUESKY_HANDLE=
 BLUESKY_APP_PASSWORD=
 
-# X: developer.x.com app with Read and write, "Keys and tokens" tab
+# X: console.x.com app with Read and write (set it before generating the access token),
+# "Keys and tokens" tab. X is pay per use: add credits and set a monthly spending limit.
 X_API_KEY=
 X_API_SECRET=
 X_ACCESS_TOKEN=

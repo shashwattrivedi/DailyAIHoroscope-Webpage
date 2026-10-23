@@ -69,7 +69,7 @@ A Cloudflare Worker writes 12 lines per calendar date with Workers AI and stores
 At 12:00 UTC, after the site build has published the day's images, the Worker starts sharing the lines. The Workers Free plan allows 50 outgoing requests per run and a full day needs over 100, so it posts every 10 minutes until 13:50, as much as fits in each run, in the order of `SOCIAL` (14:00 is the last try):
 
 - **Bluesky**: 12 separate posts, one per sign with its tall 4:5 card, 30 seconds apart.
-- **X**: a thread (one post, then a reply per sign). `X_THREAD=false` posts only the first.
+- **X**: a thread: the cover image, then a reply per sign with its card. X bills each post, and a post with a link costs about 13 times more, so the posts have no links (the cards show the address, and the profile links to the site). `X_THREAD=false` posts only the cover.
 - **Facebook**: one Page post with all 12 lines. **Reddit**: one text post in `REDDIT_SUBREDDIT`.
 - **Instagram**: one carousel of 13 slides: a cover (`post/cover-<date>.jpg`, "swipe to find your sign", in a different sign colour each day) and the 1080×1350 card of each sign (`post/<sign>-<date>.jpg`), with all 12 lines in the caption.
 - **Instagram stories**: 13 stories in zodiac order: a cover (`story/cover-<date>.jpg`, "tap to find your sign") and the 1080×1920 card of each sign (`story/<sign>-<date>.jpg`). The API can't add link stickers, so each card shows the sign's address. Saving them to a Highlight has to be done in the app.

@@ -24,7 +24,8 @@
     "SOCIAL": "facebook,instagram,instagram_story,bluesky",
     // "true": only log what would be posted. Set to "false" to post for real.
     "SOCIAL_DRY_RUN": "false",
-    // "false": post only the first X post, not the 12 replies (the free X API tier allows few posts).
+    // "false": post only the X cover post, not the 12 sign replies. X bills each post
+    // (about $0.015 without a link): the thread is about $6 a month, the cover alone $0.45.
     "X_THREAD": "true",
     "REDDIT_SUBREDDIT": "",
     "META_GRAPH_VERSION": "v23.0",

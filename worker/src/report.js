@@ -149,6 +149,8 @@ export async function collect(env, now = Date.now()) {
   const stats = await env.DATA.get('data/stats.json');
   snap.hashtag = stats ? await stats.json().then((s) => ({ total: s.total, week: s.week })) : null;
   snap.written = !!(await env.HOROSCOPES.get('day:' + date));
+  snap.social = env.SOCIAL;
+  snap.xThread = env.X_THREAD !== 'false';
   ({ out: snap.posted, parts: snap.postedParts } = await posting(env, date));
   snap.tokens = await env.HOROSCOPES.get('tokens', 'json'); // from the 10:00 run (ops.js)
   await env.HOROSCOPES.put('report:' + ymd(now), JSON.stringify(snap), { expirationTtl: 400 * 86400 });
@@ -213,7 +215,8 @@ function status(s) {
     item('Bluesky', posted.bluesky >= 12, (posted.bluesky || 0) + '/12') +
     item('Instagram', posted.instagram >= 1, posted.instagram ? 'posted' : 'not posted') +
     item('Instagram stories', stories >= 13, stories + '/13' + (stories && stories < 13 && last ? ' (up to ' + last + ')' : '')) +
-    item('Facebook', posted.facebook >= 1, posted.facebook ? 'posted' : 'not posted');
+    item('Facebook', posted.facebook >= 1, posted.facebook ? 'posted' : 'not posted') +
+    (/\bx\b/.test(s.social || '') ? item('X', posted.x >= (s.xThread ? 13 : 1), (posted.x || 0) + '/' + (s.xThread ? 13 : 1)) : '');
 }
 
 function errors(s) {

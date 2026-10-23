@@ -134,20 +134,35 @@ async function oauth1(env, method, url) {
 // X counts every link as 23 characters.
 const xLength = (t) => graphemes(t.replace(/https?:\/\/\S+/g, 'x'.repeat(23)));
 
+// The X API is paid per post, and a post with a link costs about 13 times one without
+// ($0.20 against $0.015, Oct 2026). So the posts carry no links: the card images show
+// the site's address and the profile links to it. A day is the cover, then the 12 sign
+// cards as replies (X_THREAD=false: the cover only). Each post fetches its image,
+// uploads it and posts: 3 requests.
 async function x(c) {
-  const { env } = c, url = 'https://api.x.com/2/tweets';
-  const tweet = async (text, replyTo) => (await (await call('X post', url, jsonPost({ text, ...(replyTo ? { reply: { in_reply_to_tweet_id: replyTo } } : {}) },
-    { Authorization: await oauth1(env, 'POST', url) }))).json()).data;
+  const { env } = c, url = 'https://api.x.com/2/tweets', mediaUrl = 'https://api.x.com/2/media/upload';
+  const upload = async (image) => {
+    const img = await call('Image ' + image, image);
+    if (!/^image\//.test(img.headers.get('content-type') || '')) throw new Error('Not an image: ' + image);
+    const body = new FormData();
+    body.append('media', new Blob([await img.arrayBuffer()], { type: img.headers.get('content-type') }), 'card.jpg');
+    body.append('media_category', 'tweet_image');
+    return (await (await call('X upload', mediaUrl, { method: 'POST', headers: { Authorization: await oauth1(env, 'POST', mediaUrl) }, body })).json()).data.id;
+  };
+  const tweet = async (text, image, replyTo) => {
+    const media = await upload(image);
+    return (await (await call('X post', url, jsonPost({ text, media: { media_ids: [media] }, ...(replyTo ? { reply: { in_reply_to_tweet_id: replyTo } } : {}) },
+      { Authorization: await oauth1(env, 'POST', url) }))).json()).data;
+  };
 
-  const rootText = c.rootText;
-  const root = await c.once('x:root', rootText, 1, () => tweet(rootText));
-  // The free X API tier allows few posts a month; X_THREAD=false posts only the first one.
-  if (env.X_THREAD === 'false') return;
-  let parent = root;
+  const thread = env.X_THREAD !== 'false';
+  const rootText = 'Today’s 12 horoscopes for ' + c.long + ', written by an AI.' + (thread ? ' Find your sign in the replies 👇' : '') +
+    '\n\n' + DISCLAIMER + '\n' + INVITE;
+  let parent = await c.once('x:root', rootText, 3, () => tweet(rootText, c.image('cover')));
+  if (!thread) return;
   for (const s of SIGNS) {
-    // The sign page's preview image shows up as the link card.
-    const text = fit((l) => s.glyph + ' ' + s.name + ' · ' + c.short + '\n“' + l + '”\n' + c.site + '/' + s.slug, c.line(s), 280, xLength);
-    parent = await c.once('x:' + s.slug, text, 1, () => tweet(text, parent.id));
+    const text = fit((l) => s.glyph + ' ' + s.name + ' · ' + c.short + '\n“' + l + '”', c.line(s), 280, xLength);
+    parent = await c.once('x:' + s.slug, text, 3, () => tweet(text, c.image('post', s), parent.id));
   }
 }
 
@@ -259,8 +274,6 @@ export async function share(env, day, budget = Infinity) {
   const long = when.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
   const base = {
     env, site, date: day.date, long,
-    // First post of the X thread.
-    rootText: 'Today’s 12 horoscopes for ' + long + '. ' + DISCLAIMER + '\n\n' + INVITE + '\n' + site,
     short: when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }),
     line: (s) => day.signs[s.key],
     image: (kind, s) => kind === 'cover' ? site + '/post/cover-' + day.date + '.jpg'
