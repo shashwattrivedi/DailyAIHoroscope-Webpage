@@ -33,7 +33,7 @@ Glider.js : [GitHub - NickPiscitelli/Glider.js: A fast, lightweight, dependency 
 - `js/constellations.js`: constellation figures. `js/signs.js`: signs, dates and colours.
 - `js/astronomy.browser.min.js`: [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT), used for today's planet positions.
 - `widget.html` + `js/widget.js`: the embeddable widget (`/widget?sign=aries&theme=dark`, or no sign to let the visitor pick), for other sites' iframes. No analytics or cookies; its links carry `utm_source=widget` and the embedding site's host.
-- `embed.html` + `js/embed.js`: `/embed`, where site owners pick a sign, look and size, preview the widget and copy the snippet (or just the link, for Notion), with how-tos per platform, the RSS feeds and an FAQ. `?sign=` and `?theme=` preselect the options. It's linked from the home page ("Add to your site", and the sign sheet; GA event `widget_click`) and from every widget ("Get this widget").
+- `embed.html` + `js/embed.js`: `/embed`, where site owners pick a sign, look and size, preview the widget and copy the snippet (or just the link, for Notion), with how-tos per platform, the RSS feeds, the open JSON data files (`#data`; the Reddit app's fetch-domain request points to it) and an FAQ. `?sign=` and `?theme=` preselect the options. It's linked from the home page ("Add to your site", and the sign sheet; GA event `widget_click`) and from every widget ("Get this widget").
 - `js/timing.js`: page timing. When a visitor leaves, it sends the GA event `page_timing` with how long each step took (connection, first byte, first and largest paint, lines shown and from where, sky drawn, time the page was busy, slowest tap, slowest file). Open any page with `?timing` to see the same in the browser console.
 - `worker/`: the Cloudflare Worker that writes the horoscopes (see below).
 - `scripts/build.mjs`: the daily build (see below).
@@ -48,6 +48,7 @@ The pages work as they are (open `index.html` from any static server). The API a
 - a 1200×630 link-preview image per sign (`og/<sign>-<date>.png`), drawn by `scripts/og.html` in headless Chrome (set `CHROME_PATH` if Chrome isn't in the usual place; without Chrome the images are skipped);
 - the widget with the lines baked in, like the pages;
 - RSS feeds of the last week's lines: `feed.xml` (all signs) and `feed/<sign>.xml`, linked from the pages;
+- `privacy.html` and `terms.html` (`/privacy`, `/terms`), also linked from the Reddit app's settings, which an app that fetches needs;
 - `404.html`, which Pages serves with status 404 for any address that isn't a page or file (without it, unknown addresses got the home page with status 200);
 - `sitemap.xml`, `robots.txt`, and `_headers` (keeps the `pages.dev` copies out of search). Visitors still get their own local date: the page swaps to it on load if it differs.
 

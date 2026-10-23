@@ -98,8 +98,8 @@ function setMeta(html, { title, description, url, image, ld = [], feed }) {
     ...ld.map((o) => '<script type="application/ld+json">' + JSON.stringify({ '@context': 'https://schema.org', ...o }).replace(/</g, '\\u003c') + '</script>')
   ];
   html = html.replace(/(<meta name="description"[^>]*>)/, () => html.match(/<meta name="description"[^>]*>/)[0] + '\n  ' + tags.join('\n  '));
-  // Pages serves /purpose, /embed and / without the .html.
-  return html.replace(/href="index\.html"/g, 'href="/"').replace(/href="(purpose|embed)\.html"/g, 'href="/$1"');
+  // Pages serves /purpose, /embed, /privacy, /terms and / without the .html.
+  return html.replace(/href="index\.html"/g, 'href="/"').replace(/href="(purpose|embed|privacy|terms)\.html"/g, 'href="/$1"');
 }
 
 // { "YYYY-MM-DD": { Aries: '…', … }, … } for every baked date (see lines()).
@@ -243,6 +243,15 @@ write('embed.html', setMeta(embedHtml, {
   ]
 }));
 
+// /privacy and /terms (also linked from the Reddit app's settings).
+for (const name of ['privacy', 'terms']) {
+  const html = read(name + '.html');
+  write(name + '.html', setMeta(html, {
+    title: html.match(/<title>([^<]*)<\/title>/)[1], url: SITE + '/' + name,
+    description: html.match(/name="description" content="([^"]*)"/)[1], image: imageOf(season)
+  }));
+}
+
 // /404.html: Pages serves it with status 404 for any address that isn't a file or page.
 // Without it, Pages answers unknown addresses with the home page and status 200, which
 // search engines treat as duplicate pages. It can be served at any depth, so its links
@@ -344,7 +353,7 @@ for (const f of fs.readdirSync(OUT).filter((f) => f.endsWith('.html'))) {
 }
 
 const lastmod = date;
-const urls = ['/', '/purpose', '/embed', ...SIGNS.map((s) => '/' + slug(s))];
+const urls = ['/', '/purpose', '/embed', '/privacy', '/terms', ...SIGNS.map((s) => '/' + slug(s))];
 write('sitemap.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
   urls.map((u) => '  <url><loc>' + SITE + (u === '/' ? '/' : u) + '</loc><lastmod>' + lastmod + '</lastmod><changefreq>daily</changefreq></url>').join('\n') + '\n</urlset>\n');
 write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE + '/sitemap.xml\n');

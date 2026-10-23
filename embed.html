@@ -36,6 +36,10 @@
       margin-top: 10px; min-height: 44px; padding: 0 20px; border: 0; border-radius: 999px;
       background: #FF6BB5; color: #111111; font: 800 15px Outfit, system-ui, sans-serif; cursor: pointer;
     }
+    .json {
+      margin: 6px 0 0; padding: 14px; overflow-x: auto; border: 2px solid rgba(245, 243, 238, .25); border-radius: 14px;
+      background: #1C1C1C; color: #F5F3EE; font: 700 13px/1.5 'Space Mono', ui-monospace, monospace;
+    }
     .feeds { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 16px; padding: 0; list-style: none; }
     .feeds a { font-weight: 700; }
     .feeds li:first-child { grid-column: 1 / -1; }
@@ -119,6 +123,26 @@
       <p>For start pages and feed readers (start.me, Protopage, Feedly, Inoreader, Homepage, Glance…). A new line every day.</p>
       <ul class="feeds" id="feeds"></ul>
 
+      <h2 id="data">Open data (JSON)</h2>
+      <p>Each day’s 12 lines are also a public JSON file, for apps, bots and dashboards. No key, no sign-up; any site may fetch it (CORS is open).</p>
+      <div class="code">
+        <label class="kicker" for="dataUrl">GET, ONE FILE PER DATE (YYYY-MM-DD)</label>
+        <textarea id="dataUrl" readonly spellcheck="false" style="min-height: 0">https://data.dailyaihoroscope.com/data/2026-10-24.json</textarea>
+      </div>
+      <div class="code">
+        <span class="kicker">RESPONSE</span>
+        <pre class="json">{
+  "date": "2026-10-24",
+  "signs": {
+    "Aries": "Emotional wounds begin to mend…",
+    "Taurus": "…",
+    … one line for each of the 12 signs …
+    "Pisces": "…"
+  }
+}</pre>
+      </div>
+      <p class="small">A date’s file appears when that date starts somewhere on Earth (00:00 in UTC+14, which is 10:00 UTC the day before) and never changes after that; past dates stay available. Before that it answers 404. Scorpio and Capricorn use their constellation names, <b>Scorpius</b> and <b>Capricornus</b>. Please fetch a few times a day at most, keep the credit, and see the <a href="terms.html">terms</a>.</p>
+
       <h2>Questions</h2>
       <div class="faq">
         <details><summary>Is it really free?</summary><p>Yes, for any site, personal or commercial. No sign-up, no key, no limits.</p></details>
@@ -128,7 +152,7 @@
         <details><summary>Will it slow my page down?</summary><p>No. It’s small, and the iframe loads lazily, after the rest of your page.</p></details>
         <details><summary>Is it real astrology?</summary><p>No. The lines are written by an AI as an experiment on the Barnum effect: why vague lines feel personal. They aren’t advice.</p></details>
       </div>
-      <p class="small">More about the experiment: <a href="purpose.html">why it still feels true</a>.</p>
+      <p class="small">More about the experiment: <a href="purpose.html">why it still feels true</a>. <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></p>
     </main>
   </div>
 
