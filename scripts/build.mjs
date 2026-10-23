@@ -117,7 +117,7 @@ function signPage(template, day, i, meta) {
   html = replace(html, '<h1 id="signName"></h1>', '<h1 id="signName">' + s.name + '</h1>');
   if (day) {
     html = replace(html, '<blockquote class="quote layer" id="quote"></blockquote>', '<blockquote class="quote layer" id="quote">“' + esc(day.signs[dataKey(s)]) + '”</blockquote>');
-    html = replace(html, '<script src="js/astronomy.browser.min.js">', bakedScript() + '<script src="js/astronomy.browser.min.js">');
+    html = replace(html, '<script src="js/astronomy.browser.min.js" defer>', bakedScript() + '<script src="js/astronomy.browser.min.js" defer>');
   }
   return html;
 }

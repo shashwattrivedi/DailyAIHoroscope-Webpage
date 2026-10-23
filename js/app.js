@@ -273,9 +273,13 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     els.tip.hidden = false;
   }
 
+  const colourEls = document.querySelectorAll('.date-pill, .all-signs, .share, .chips');
   function renderText() {
     const s = SIGNS[state.sel];
-    document.documentElement.style.setProperty('--bg', s.color);
+    // The sign's colour goes only where it's used: --bg on the root would make the browser
+    // restyle all ~550 elements (dust, pickers, tiles) on every switch.
+    [document.documentElement, document.body].forEach((e) => (e.style.background = s.color));
+    colourEls.forEach((e) => e.style.setProperty('--bg', s.color));
     document.querySelector('meta[name="theme-color"]').setAttribute('content', s.color);
     els.barDates.textContent = 'BORN ' + s.dates + '?';
     els.barName.textContent = 'You’re a ' + s.name;
@@ -284,9 +288,12 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     els.prev.setAttribute('aria-label', 'Previous sign, ' + SIGNS[(state.sel + 11) % 12].name);
     els.next.setAttribute('aria-label', 'Next sign, ' + SIGNS[(state.sel + 1) % 12].name);
     els.quote.textContent = lines ? '“' + lineFor(state.sel) + '”' : '';
-    els.quote.classList.remove('rise');
-    void els.quote.offsetWidth;
-    if (lines) els.quote.classList.add('rise');
+    // Restarts the rise without making the browser lay out the page first (a class swap
+    // needs a forced layout in between, which made every sign switch slower).
+    if (lines && !reduceMotion && els.quote.animate) {
+      els.quote.animate([{ opacity: 0, transform: 'translateY(18px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 600, easing: 'cubic-bezier(.2, .8, .2, 1)', fill: 'backwards' });
+    }
     els.dots.querySelectorAll('span').forEach((d, i) => d.classList.toggle('on', i === state.sel));
     els.chips.querySelectorAll('.chip').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
     els.tiles.querySelectorAll('.tile').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
@@ -341,7 +348,16 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     }
     renderText();
     fitQuote();
-    renderSky(true);
+    skySoon();
+  }
+
+  // The new line and colour paint first; the constellation is drawn just after that
+  // frame, so a tap shows its result straight away. Quick taps draw only the last sign.
+  let skyFrame = 0, skyT = 0;
+  function skySoon() {
+    cancelAnimationFrame(skyFrame);
+    clearTimeout(skyT);
+    skyFrame = requestAnimationFrame(() => { skyT = setTimeout(() => renderSky(true)); });
   }
 
   // ---------- Birthday finder ----------
@@ -464,7 +480,9 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   let prewarmT = 0;
   function prewarm() {
     clearTimeout(prewarmT);
-    prewarmT = setTimeout(() => cardFor(state.sel), 400);
+    // Only for a sign the visitor stays on, and when the page is idle, so drawing the card
+    // never delays the next tap.
+    prewarmT = setTimeout(() => (window.requestIdleCallback || setTimeout)(() => cardFor(state.sel)), 1500);
   }
 
   function download(file) {

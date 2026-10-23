@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="css/fonts.css" />
   <!-- Only used when the page has no baked lines for the visitor's date. -->
   <link rel="preconnect" href="https://data.dailyaihoroscope.com" crossorigin />
+  <link rel="modulepreload" href="js/social-links.js" />
   <link rel="stylesheet" href="css/site.css" />
   <!-- Google Analytics (loads after the page; see the file). -->
   <script src="js/analytics.js" defer></script>
@@ -126,9 +127,11 @@
     </div>
   </div>
 
-  <script src="js/astronomy.browser.min.js"></script>
-  <script src="js/constellations.js"></script>
-  <script src="js/signs.js"></script>
+  <!-- defer: the page (with today's lines) paints without waiting for them; they still
+       run in this order, before app.js. -->
+  <script src="js/astronomy.browser.min.js" defer></script>
+  <script src="js/constellations.js" defer></script>
+  <script src="js/signs.js" defer></script>
   <script type="module" src="js/app.js"></script>
 </body>
 
