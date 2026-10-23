@@ -13,6 +13,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { SOCIAL_LINKS, followLinks } from '../js/social-links.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'dist');
@@ -107,6 +108,7 @@ const bakedScript = () => '<script id="baked" type="application/json">' + JSON.s
 function signPage(template, day, i, meta) {
   const s = SIGNS[i];
   let html = setMeta(template, meta);
+  html = replace(html, '<!-- FOLLOW_LINKS -->', followLinks());
   // The sign colour goes on <html>, the one place app.js updates it when the sign changes.
   html = replace(html, '<html lang="en">', '<html lang="en" style="--bg: ' + s.color + '">');
   html = replace(html, '<div class="app" id="app">', '<div class="app" id="app" data-sign="' + s.key + '">');
@@ -142,15 +144,15 @@ async function drawImages(date, lineOf) {
       for (const [layout, dir, ext] of [['og', 'og', 'png'], ['post', 'post', 'jpg'], ['story', 'story', 'jpg']]) {
         // A story can't carry a link, so it shows the sign's own address.
         const site = SITE.replace(/^https?:\/\//, '') + (layout === 'story' ? '/' + slug(s) : '');
-        const img = await page.evaluate((...a) => window.drawCard(...a), layout, s.key, label, lineOf(s), site);
+        const img = await page.evaluate((...a) => window.drawCard(...a), layout, s.key, label, lineOf(s), site, SOCIAL_LINKS);
         fs.writeFileSync(path.join(OUT, dir, slug(s) + '-' + date + '.' + ext), Buffer.from(img.split(',')[1], 'base64'));
       }
     }
     // First slide of the Instagram carousel, in the colour of the sign of the season.
     const [, m, d] = date.split('-').map(Number);
-    const cover = await page.evaluate((...a) => window.drawCover(...a), SIGNS[signIndex(m, d)].key, label, SITE.replace(/^https?:\/\//, ''));
+    const cover = await page.evaluate((...a) => window.drawCover(...a), SIGNS[signIndex(m, d)].key, label, SITE.replace(/^https?:\/\//, ''), false, SOCIAL_LINKS);
     fs.writeFileSync(path.join(OUT, 'post', 'cover-' + date + '.jpg'), Buffer.from(cover.split(',')[1], 'base64'));
-    const storyCover = await page.evaluate((...a) => window.drawCover(...a), SIGNS[signIndex(m, d)].key, label, SITE.replace(/^https?:\/\//, ''), true);
+    const storyCover = await page.evaluate((...a) => window.drawCover(...a), SIGNS[signIndex(m, d)].key, label, SITE.replace(/^https?:\/\//, ''), true, SOCIAL_LINKS);
     fs.writeFileSync(path.join(OUT, 'story', 'cover-' + date + '.jpg'), Buffer.from(storyCover.split(',')[1], 'base64'));
     return true;
   } finally {
@@ -176,8 +178,7 @@ const imageOf = (s) => images ? { url: SITE + '/og/' + slug(s) + '-' + date + '.
 
 // The site's own accounts. Listing them here (and linking them with rel="me" on the
 // purpose page) tells search engines they belong to dailyaihoroscope.com.
-const PROFILES = ['https://www.instagram.com/dailyaihoroscope/', 'https://www.facebook.com/dailyaihoroscope',
-  'https://bsky.app/profile/dailyaihoroscope.com', 'https://github.com/shashwattrivedi/DailyAIHoroscope-Webpage'];
+const PROFILES = [...SOCIAL_LINKS.map(({ url }) => url), 'https://github.com/shashwattrivedi/DailyAIHoroscope-Webpage'];
 const ORG = { '@type': 'Organization', name: 'Daily AI Horoscope', url: SITE + '/', logo: SITE + '/media/brand/avatar-400.png', sameAs: PROFILES };
 const index = read('index.html');
 const [, m, d] = date.split('-').map(Number);
@@ -213,6 +214,7 @@ let purpose = setMeta(read('purpose.html'), {
     isPartOf: { '@type': 'WebSite', name: 'Daily AI Horoscope', url: SITE + '/' }, publisher: ORG
   }]
 });
+purpose = replace(purpose, '<!-- FOLLOW_LINKS -->', followLinks('foot-follow-icon'));
 if (day) {
   const buttons = SIGNS.map((s) => '<button type="button" class="line" style="--c: ' + s.color + '" aria-pressed="false"><span class="line-sign">' +
     s.glyph + ' ' + s.name.toUpperCase() + '</span><span class="line-text">' + esc(day.signs[dataKey(s)]) + '</span></button>').join('');
@@ -266,6 +268,15 @@ SIGNS.forEach((s) => feed('feed/' + slug(s) + '.xml', 'Daily AI Horoscope: ' + s
 // stays cached.
 const hashes = {};
 const hashOf = (f) => (hashes[f] ??= crypto.createHash('sha256').update(fs.readFileSync(path.join(OUT, f))).digest('hex').slice(0, 10));
+for (const file of fs.readdirSync(path.join(OUT, 'js')).filter((f) => f.endsWith('.js')).map((f) => 'js/' + f)) {
+  const source = fs.readFileSync(path.join(OUT, file), 'utf8');
+  const versioned = source.replace(/(from\s+['"])(\.{1,2}\/[^'"]+\.js)(['"])/g, (match, before, specifier, after) => {
+    const dependency = path.posix.normalize(path.posix.join(path.posix.dirname(file), specifier));
+    return dependency.startsWith('js/') && fs.existsSync(path.join(OUT, dependency))
+      ? before + specifier + '?v=' + hashOf(dependency) + after : match;
+  });
+  if (versioned !== source) fs.writeFileSync(path.join(OUT, file), versioned);
+}
 for (const f of fs.readdirSync(OUT).filter((f) => f.endsWith('.html'))) {
   const html = fs.readFileSync(path.join(OUT, f), 'utf8');
   write(f, html.replace(/((?:href|src)=")((?:css|js)\/[^"?#]+\.(?:css|js))"/g, (m, attr, file) => attr + file + '?v=' + hashOf(file) + '"'));

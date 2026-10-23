@@ -27,6 +27,60 @@
       return out;
     }
 
+    function socialIcon(ctx, platform, x, y, size, color) {
+      const k = size / 24;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(k, k);
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      if (platform === 'instagram') {
+        ctx.beginPath(); ctx.roundRect(3, 3, 18, 18, 5); ctx.stroke();
+        ctx.beginPath(); ctx.arc(12, 12, 4, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(17.5, 6.5, 1, 0, Math.PI * 2); ctx.fill();
+      } else if (platform === 'facebook') {
+        ctx.beginPath(); ctx.moveTo(15, 21); ctx.lineTo(15, 13); ctx.lineTo(18, 13);
+        ctx.lineTo(18.5, 9); ctx.lineTo(15, 9); ctx.lineTo(15, 7);
+        ctx.bezierCurveTo(15, 5.8, 15.4, 5, 17, 5); ctx.lineTo(18.7, 5);
+        ctx.lineTo(18.7, 1.4); ctx.bezierCurveTo(17.9, 1.2, 16.8, 1, 15.5, 1);
+        ctx.bezierCurveTo(12.3, 1, 10, 2.9, 10, 6.5); ctx.lineTo(10, 9);
+        ctx.lineTo(7, 9); ctx.lineTo(7, 13); ctx.lineTo(10, 13); ctx.lineTo(10, 21);
+        ctx.closePath(); ctx.fill();
+      } else if (platform === 'bluesky') {
+        ctx.beginPath(); ctx.moveTo(12, 12);
+        ctx.bezierCurveTo(9, 8, 4.4, 4.2, 2.7, 5.1);
+        ctx.bezierCurveTo(1.1, 5.9, 2.2, 10.5, 4.2, 12.3);
+        ctx.bezierCurveTo(5.8, 13.8, 8.2, 13.9, 12, 12);
+        ctx.bezierCurveTo(8.2, 13.9, 6.8, 15.7, 7.4, 17.6);
+        ctx.bezierCurveTo(8, 19.4, 10, 19.4, 12, 15.5);
+        ctx.bezierCurveTo(14, 19.4, 16, 19.4, 16.6, 17.6);
+        ctx.bezierCurveTo(17.2, 15.7, 15.8, 13.9, 12, 12);
+        ctx.bezierCurveTo(15.8, 13.9, 18.2, 13.8, 19.8, 12.3);
+        ctx.bezierCurveTo(21.8, 10.5, 22.9, 5.9, 21.3, 5.1);
+        ctx.bezierCurveTo(19.6, 4.2, 15, 8, 12, 12);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawFooter(ctx, links, site, x, y, size, right) {
+      let iconX = x;
+      links.forEach(({ platform }) => {
+        socialIcon(ctx, platform, iconX, y, size, '#111111');
+        iconX += size + 8;
+      });
+      const textX = iconX + 4;
+      ctx.fillStyle = '#111111';
+      ctx.font = '700 ' + size + 'px "Space Mono"';
+      while (ctx.measureText(site).width > right - textX && size > 18) {
+        ctx.font = '700 ' + --size + 'px "Space Mono"';
+      }
+      ctx.fillText(site, textX, y);
+    }
+
     // Three layouts: 'og' is the 1200x630 link preview (PNG); 'post' is the 1080x1350 (4:5)
     // card for Instagram, which only takes JPEG; 'story' is the 1080x1920 (9:16) Instagram
     // story, with everything between y 250 and 1670, clear of the app's overlays.
@@ -40,7 +94,7 @@
     };
 
     // date: 'WED 21 OCT'; line may be empty (then a generic tagline is shown).
-    window.drawCard = async function (layout, key, date, line, site) {
+    window.drawCard = async function (layout, key, date, line, site, links) {
       const L = LAYOUT[layout], { W, H, P } = L, top = L.top || P;
       const s = SIGNS.find((x) => x.key === key), c = window.CONSTELLATIONS[key];
       await Promise.all(['800 34px Outfit', '900 120px Outfit', '700 24px "Space Mono"'].map((f) => document.fonts.load(f)));
@@ -98,8 +152,7 @@
       const lh = (size + 2) * 1.12;
       lines.forEach((l, i) => ctx.fillText(l, P, qY + i * lh));
 
-      ctx.font = '700 ' + L.foot + 'px "Space Mono"';
-      ctx.fillText(site, P, L.footY || H - P + 8);
+      drawFooter(ctx, links, site, P, L.footY || H - P + 8, L.foot, W - P);
       return cv.toDataURL(L.type, 0.92);
     };
 
@@ -118,7 +171,7 @@
     // First slide of the Instagram carousel (1080x1350 JPEG): what the post is, and
     // "swipe" to the 12 sign cards. key: the sign of the season, for the colour.
     // story: the same for the first story (1080x1920), centred in the safe area, "tap".
-    window.drawCover = async function (key, date, site, story) {
+    window.drawCover = async function (key, date, site, story, links) {
       const W = 1080, H = 1350, P = 80, s = SIGNS.find((x) => x.key === key), full = story ? 1920 : H;
       await Promise.all(['800 40px Outfit', '900 140px Outfit', '700 28px "Space Mono"'].map((f) => document.fonts.load(f)));
       const cv = document.createElement('canvas');
@@ -166,8 +219,7 @@
       const swipe = (story ? 'TAP' : 'SWIPE') + '  →  FIND YOUR SIGN', sw = ctx.measureText(swipe).width + 48;
       ctx.beginPath(); ctx.roundRect(W - P - sw, H - P - 40, sw, 64, 32); ctx.fill();
       ctx.fillStyle = s.color; ctx.fillText(swipe, W - P - sw + 24, H - P - 40 + 19);
-      ctx.fillStyle = '#111111'; ctx.font = '700 24px "Space Mono"';
-      ctx.fillText(site, P, H - P - 18);
+      drawFooter(ctx, links, site, P, H - P - 18, 26, W - P - sw - 24);
       return cv.toDataURL('image/jpeg', 0.92);
     };
   </script>

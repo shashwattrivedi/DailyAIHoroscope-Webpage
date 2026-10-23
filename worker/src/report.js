@@ -10,6 +10,7 @@
 // - Hashtag stories (stats.js), and what the Worker wrote and posted that day.
 
 import { mail, explain } from './ops.js';
+import { SOCIAL_LINKS } from '../../js/social-links.js';
 
 const DAY = 86400000;
 const ymd = (t) => new Date(t).toISOString().slice(0, 10);
@@ -245,8 +246,8 @@ function table(s, prev, hist) {
     (hist ? '<td style="text-align:right;width:130px;border-bottom:1px solid #eee">' + spark(hist.map(get)) + '</td>' : '<td></td>') + '</tr>').join('') + '</table>';
 }
 
-const LINKS = '<p style="font-size:13px"><a href="https://analytics.google.com/">Google Analytics</a> · <a href="https://bsky.app/profile/dailyaihoroscope.com">Bluesky</a> · ' +
-  '<a href="https://www.instagram.com/dailyaihoroscope/">Instagram</a> · <a href="https://www.facebook.com/dailyaihoroscope">Facebook</a> · ' +
+const SOCIAL_REPORT_LINKS = SOCIAL_LINKS.map(({ url, label }) => '<a href="' + url + '">' + label + '</a>').join(' · ');
+const LINKS = '<p style="font-size:13px"><a href="https://analytics.google.com/">Google Analytics</a> · ' + SOCIAL_REPORT_LINKS + ' · ' +
   '<a href="https://dash.cloudflare.com/">Cloudflare</a> · <a href="https://dailyaihoroscope.com/">Site</a></p>';
 
 // 14:00 UTC run: collect, keep, and email the summary.
