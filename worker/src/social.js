@@ -7,7 +7,12 @@
 // - SOCIAL_DRY_RUN is "true" until you switch it off: posts are only logged.
 // - Each post is recorded in KV (posted:<date>:<part>), so a re-run never posts twice
 //   and a run that broke halfway continues where it stopped.
-// - Platforms run independently; one failing doesn't stop the others.
+// - Platforms run one after another, in the order of SOCIAL; one failing doesn't stop
+//   the others.
+// - The Workers Free plan allows 50 outgoing requests per run, and a full day (12
+//   Bluesky posts, the carousel, 13 stories) needs over 100. So each run gets a budget:
+//   a post starts only if its requests fit, and the rest waits for the next run (every
+//   10 minutes from 12:00 UTC), which carries on where this one stopped.
 
 import { explain } from './ops.js';
 
@@ -23,10 +28,20 @@ const INVITE = 'Felt true? Share it with #DailyAIHoroscopeWasCorrect';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const graphemes = (s) => [...new Intl.Segmenter('en', { granularity: 'grapheme' }).segment(s)].length;
 
+// Requests made in this run, and how many it may make (see share()).
+const run = { spent: 0, limit: Infinity };
+// Thrown when the next post doesn't fit this run's budget; not an error.
+class Later extends Error {}
+function count() {
+  if (run.spent >= run.limit) throw new Later('out of requests for this run');
+  run.spent++;
+}
+
 // fetch with retries for network errors, 429 and 5xx (backoff, honours Retry-After).
 async function call(what, url, init = {}, tries = 3) {
   for (let i = 1; ; i++) {
     let res, err;
+    count();
     try { res = await fetch(url, init); } catch (e) { err = e; }
     if (res && res.ok) return res;
     const again = !res || res.status === 429 || res.status >= 500;
@@ -88,7 +103,8 @@ async function bluesky(c) {
   for (const s of SIGNS) {
     const text = fit((l) => s.glyph + ' ' + s.name + ' · ' + c.short + '\n\n“' + l + '”\n\nWritten by AI, not the stars. #' + s.name + ' #horoscope\n' +
       c.site + '/' + s.slug, c.line(s), 300, graphemes);
-    await c.once('bluesky:' + s.slug, text, async () => {
+    // The image, its upload and the post, plus the login on the first post of a run.
+    await c.once('bluesky:' + s.slug, text, 4, async () => {
       if (gap) await sleep(BLUESKY_GAP);
       gap = true;
       return post({
@@ -124,14 +140,14 @@ async function x(c) {
     { Authorization: await oauth1(env, 'POST', url) }))).json()).data;
 
   const rootText = c.rootText;
-  const root = await c.once('x:root', rootText, () => tweet(rootText));
+  const root = await c.once('x:root', rootText, 1, () => tweet(rootText));
   // The free X API tier allows few posts a month; X_THREAD=false posts only the first one.
   if (env.X_THREAD === 'false') return;
   let parent = root;
   for (const s of SIGNS) {
     // The sign page's preview image shows up as the link card.
     const text = fit((l) => s.glyph + ' ' + s.name + ' · ' + c.short + '\n“' + l + '”\n' + c.site + '/' + s.slug, c.line(s), 280, xLength);
-    parent = await c.once('x:' + s.slug, text, () => tweet(text, parent.id));
+    parent = await c.once('x:' + s.slug, text, 1, () => tweet(text, parent.id));
   }
 }
 
@@ -143,7 +159,7 @@ async function facebook(c) {
   const { env } = c;
   const message = 'Today’s 12 horoscopes for ' + c.long + ', written by an AI.\n\n' +
     SIGNS.map((s) => s.glyph + ' ' + s.name + ': ' + c.line(s)).join('\n') + '\n\n' + DISCLAIMER + '\n' + INVITE;
-  await c.once('facebook', message, async () =>
+  await c.once('facebook', message, 1, async () =>
     (await call('Facebook post', graph(env, env.META_PAGE_ID + '/feed'), form({ message, link: c.site, access_token: env.META_PAGE_TOKEN }))).json());
 }
 
@@ -173,7 +189,8 @@ async function instagram(c) {
   let caption = head + '\n\n' + SIGNS.map((s) => s.glyph + ' ' + s.name + ': ' + c.line(s)).join('\n') + tail;
   if (caption.length > 2200) caption = head + tail; // Instagram's caption limit
 
-  await c.once('instagram', caption, async () => {
+  // 13 slides and their status checks, the carousel, its check, publishing, and a margin.
+  await c.once('instagram', caption, 34, async () => {
     const slides = [];
     for (const url of [c.image('cover'), ...SIGNS.map((s) => c.image('post', s))]) slides.push((await igMake(env, { image_url: url, is_carousel_item: 'true' })).id);
     for (const id of slides) await igReady(env, id);
@@ -191,7 +208,8 @@ async function instagram(c) {
 async function instagramStory(c) {
   const { env } = c;
   for (const [part, url] of [['cover', c.image('story-cover')], ...SIGNS.map((s) => [s.slug, c.image('story', s)])]) {
-    await c.once('instagram_story:' + part, url, async () => {
+    // Upload, a status check or two, publish.
+    await c.once('instagram_story:' + part, url, 5, async () => {
       const story = await igMake(env, { media_type: 'STORIES', image_url: url });
       await igReady(env, story.id);
       return igPublish(env, story.id);
@@ -207,7 +225,7 @@ async function reddit(c) {
   const text = 'Twelve horoscope-style lines for ' + c.long + ', written by an AI as a small experiment on the Barnum effect.\n\n' +
     SIGNS.map((s) => '**' + s.glyph + ' ' + s.name + '**: ' + c.line(s)).join('\n\n') +
     '\n\n*' + DISCLAIMER + '*\n\n[' + c.site.replace(/^https?:\/\//, '') + '](' + c.site + ') · ' + INVITE;
-  await c.once('reddit', title + '\n' + text, async () => {
+  await c.once('reddit', title + '\n' + text, 2, async () => {
     const tok = await (await call('Reddit login', 'https://www.reddit.com/api/v1/access_token',
       form({ grant_type: 'password', username: env.REDDIT_USERNAME, password: env.REDDIT_PASSWORD },
         { Authorization: 'Basic ' + btoa(env.REDDIT_CLIENT_ID + ':' + env.REDDIT_CLIENT_SECRET), 'User-Agent': ua }))).json();
@@ -230,8 +248,10 @@ const PLATFORMS = {
   reddit: { run: reddit, keys: ['REDDIT_CLIENT_ID', 'REDDIT_CLIENT_SECRET', 'REDDIT_USERNAME', 'REDDIT_PASSWORD', 'REDDIT_SUBREDDIT'] }
 };
 
-// day: { date, signs } as published to R2.
-export async function share(env, day) {
+// day: { date, signs } as published to R2. budget: how many requests this run may make.
+// Returns { name, error, later } per platform; later: it stopped for this run's budget.
+export async function share(env, day, budget = Infinity) {
+  Object.assign(run, { spent: 0, limit: budget });
   const site = (env.SITE || 'https://dailyaihoroscope.com').replace(/\/$/, '');
   const dry = env.SOCIAL_DRY_RUN !== 'false';
   const names = String(env.SOCIAL || '').split(',').map((s) => s.trim()).filter(Boolean);
@@ -251,31 +271,43 @@ export async function share(env, day) {
   // The posts link to the day's images, which the site build publishes after 10:00. A
   // missing file still answers 200 with the home page, so check that it is an image.
   for (const kind of ['og', 'post', 'story']) {
+    count();
     const res = await fetch(base.image(kind, SIGNS[0]), { method: 'HEAD' });
     if (!res.ok || !/^image\//.test(res.headers.get('content-type') || ''))
       throw new Error('Images for ' + day.date + ' are not on the site yet (' + res.status + ' ' + res.headers.get('content-type') + '); the next run will try again.');
   }
 
-  const results = await Promise.allSettled(names.map(async (name) => {
+  const results = [];
+  for (const name of names) {
     const p = PLATFORMS[name];
-    if (!p) throw new Error('unknown platform');
-    const missing = p.keys.filter((k) => !env[k]);
-    if (missing.length && !dry) throw new Error('missing ' + missing.join(', '));
-    await p.run({
-      ...base,
-      // Posts once per part and day; in a dry run it only logs.
-      async once(part, text, post) {
-        const key = 'posted:' + day.date + ':' + part;
-        const done = await env.HOROSCOPES.get(key, 'json');
-        if (done) return done;
-        if (dry) { console.log('[dry run] ' + part + ':\n' + text); return { id: 'dry', uri: 'dry', cid: 'dry' }; }
-        const out = (await post()) || {};
-        await env.HOROSCOPES.put(key, JSON.stringify(out), { expirationTtl: 60 * 86400 });
-        console.log('[posted] ' + part + ' ' + (out.id || out.uri || out.url || ''));
-        return out;
-      }
-    });
-  }));
-  results.forEach((r, i) => console.log((r.status === 'fulfilled' ? '[ok] ' : '[failed] ') + names[i] + (r.reason ? ': ' + r.reason.message : '')));
-  return results.map((r, i) => ({ name: names[i], error: r.reason ? explain(r.reason.message) : null }));
+    const result = { name, error: null, later: false };
+    results.push(result);
+    try {
+      if (!p) throw new Error('unknown platform');
+      const missing = p.keys.filter((k) => !env[k]);
+      if (missing.length && !dry) throw new Error('missing ' + missing.join(', '));
+      await p.run({
+        ...base,
+        // Posts once per part and day; in a dry run it only logs. cost: the requests the
+        // post makes; if they don't fit this run, the platform stops until the next run.
+        async once(part, text, cost, post) {
+          const key = 'posted:' + day.date + ':' + part;
+          const done = await env.HOROSCOPES.get(key, 'json');
+          if (done) return done;
+          if (dry) { console.log('[dry run] ' + part + ':\n' + text); return { id: 'dry', uri: 'dry', cid: 'dry' }; }
+          if (run.limit - run.spent < cost) throw new Later('next: ' + part);
+          const out = (await post()) || {};
+          await env.HOROSCOPES.put(key, JSON.stringify(out), { expirationTtl: 60 * 86400 });
+          console.log('[posted] ' + part + ' ' + (out.id || out.uri || out.url || ''));
+          return out;
+        }
+      });
+      console.log('[ok] ' + name);
+    } catch (e) {
+      if (e instanceof Later) { result.later = true; console.log('[later] ' + name + ': ' + e.message); }
+      else { result.error = explain(e.message); console.log('[failed] ' + name + ': ' + e.message); }
+    }
+  }
+  console.log('[requests] ' + run.spent + ' of ' + run.limit);
+  return results;
 }

@@ -100,19 +100,21 @@ export default {
     return json({ error: 'Not found' }, 404);
   },
 
-  // Runs at 10:00, 12:00 and 14:00 UTC:
+  // Runs at 10:00 UTC, every 10 minutes from 12:00 to 13:50, and at 14:00:
   // 1. Writes and publishes any date that is current somewhere and missing (at 10:00,
   //    the date that just started).
   // 2. If the site doesn't have that date's images yet, starts the site build (10:00,
   //    and again at 12:00 if the first build didn't land).
-  // 3. From 12:00, shares it on social media; 14:00 retries what didn't post.
-  // 4. Updates the hashtag counts on the purpose page (stats.js); at 14:00 also emails
-  //    the daily report and keeps it for the dashboard (report.js).
+  // 3. From 12:00, shares it on social media. The Free plan allows 50 outgoing requests
+  //    per run and a full day needs over 100, so each run posts what fits and the next
+  //    one carries on; 14:00 is the last try.
+  // 4. On the hour, updates the hashtag counts on the purpose page (stats.js); at 14:00
+  //    also emails the daily report and keeps it for the dashboard (report.js).
   // Anything that is still wrong is emailed: failures that a later run can't fix, and
   // (at 10:00) keys that are invalid or about to expire.
   async scheduled(event, env, ctx) {
     const now = event.scheduledTime || Date.now();
-    const hour = new Date(now).getUTCHours(), lastRun = hour >= 14;
+    const hour = new Date(now).getUTCHours(), onHour = new Date(now).getUTCMinutes() === 0, lastRun = hour >= 14;
     const [first, last] = window_(now);
     const problems = [];
 
@@ -124,14 +126,20 @@ export default {
     if (day) {
       if (!(await imagesLive(env, day.date))) {
         if (lastRun) problems.push('The site still has no images for ' + day.date + ', so nothing was posted. Check the Deploy action on GitHub.');
-        else await buildSite(env).catch((e) => problems.push(e.message));
+        else if (onHour) await buildSite(env).catch((e) => problems.push(e.message));
       } else if (hour >= 12) {
-        const failed = (await share(env, day).catch((e) => [{ name: 'social media', error: e.message }])).filter((r) => r.error);
-        if (lastRun) failed.forEach((r) => problems.push('Posting to ' + r.name + ' failed: ' + r.error));
+        // Of the 50 requests, leaves room for the image check (2), the stats on the hour
+        // (about 5) and, at 14:00, the daily report (about 13).
+        const budget = lastRun ? 25 : onHour ? 38 : 44;
+        const results = await share(env, day, budget).catch((e) => [{ name: 'social media', error: e.message }]);
+        if (lastRun) results.forEach((r) => {
+          if (r.error) problems.push('Posting to ' + r.name + ' failed: ' + r.error);
+          else if (r.later) problems.push('Posting to ' + r.name + ' didn\'t finish by 14:00 UTC (the Free plan\'s 50 requests per run); the rest of the day was skipped.');
+        });
       }
     }
 
-    await updateStats(env, now).catch((e) => console.log('[stats] ' + e.message));
+    if (onHour) await updateStats(env, now).catch((e) => console.log('[stats] ' + e.message));
     if (lastRun) await dailyReport(env, now).catch((e) => console.log('[report] ' + e.message));
     if (hour === 10) problems.push(...(await checkTokens(env, now)));
     if (problems.length) await alert(env, 'Daily AI Horoscope: ' + problems.length + ' problem' + (problems.length > 1 ? 's' : '') + ' (' + last + ')', problems);

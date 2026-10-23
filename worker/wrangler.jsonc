@@ -19,8 +19,9 @@
     "MODEL": "@cf/google/gemma-4-26b-a4b-it",
     "MODEL_OPTIONS": { "chat_template_kwargs": { "enable_thinking": false } },
     "SITE": "https://dailyaihoroscope.com",
-    // Platforms to post to: bluesky, x, facebook, instagram, instagram_story, reddit.
-    "SOCIAL": "bluesky,facebook,instagram,instagram_story",
+    // Platforms to post to, in this order: bluesky, x, facebook, instagram, instagram_story, reddit.
+    // Each run posts what fits in 50 requests, so the first ones post soonest.
+    "SOCIAL": "facebook,instagram,instagram_story,bluesky",
     // "true": only log what would be posted. Set to "false" to post for real.
     "SOCIAL_DRY_RUN": "false",
     // "false": post only the first X post, not the 12 replies (the free X API tier allows few posts).
@@ -36,9 +37,10 @@
   },
   // Problem emails go to the ALERT_TO secret, which must be a verified Email Routing destination.
   "send_email": [{ "name": "ALERT_EMAIL" }],
-  // One cron (the Free plan allows 5 per account). 10:00 UTC, when a new date starts
+  // Two crons (the Free plan allows 5 per account). 10:00 UTC, when a new date starts
   // (00:00 in UTC+14): writes and publishes it, then starts the site build; if this run
-  // fails, the first request for the date writes it (see fetch()). 12:00 UTC: shares it
-  // on social media. 14:00 UTC: retries what didn't post. See scheduled() in index.js.
-  "triggers": { "crons": ["0 10,12,14 * * *"] }
+  // fails, the first request for the date writes it (see fetch()). Every 10 minutes from
+  // 12:00 to 13:50 UTC: shares it on social media, as much as fits in each run's 50
+  // requests. 14:00 UTC: last try, then the report. See scheduled() in index.js.
+  "triggers": { "crons": ["0 10,14 * * *", "*/10 12,13 * * *"] }
 }

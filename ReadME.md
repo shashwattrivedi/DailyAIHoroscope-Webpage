@@ -64,7 +64,7 @@ A Cloudflare Worker writes 12 lines per calendar date with Workers AI and stores
 
 ## Social media (worker/src/social.js)
 
-At 12:00 UTC (retry 14:00), after the site build has published the day's images, the Worker shares the lines:
+At 12:00 UTC, after the site build has published the day's images, the Worker starts sharing the lines. The Workers Free plan allows 50 outgoing requests per run and a full day needs over 100, so it posts every 10 minutes until 13:50, as much as fits in each run, in the order of `SOCIAL` (14:00 is the last try):
 
 - **Bluesky**: 12 separate posts, one per sign with its tall 4:5 card, 30 seconds apart.
 - **X**: a thread (one post, then a reply per sign). `X_THREAD=false` posts only the first.
