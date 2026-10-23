@@ -1,3 +1,5 @@
+import { SOCIAL_LINKS, followLinks } from './social-links.js';
+
 (function () {
   const C = window.CONSTELLATIONS;
   const BODIES = [['Sun', '☉︎'], ['Moon', '☽︎'], ['Mercury', '☿︎'], ['Venus', '♀︎'], ['Mars', '♂︎'], ['Jupiter', '♃︎'], ['Saturn', '♄︎'], ['Uranus', '⛢︎'], ['Neptune', '♆︎']];
@@ -15,6 +17,7 @@
     quote: $('quote'), actions: $('actions'), shareLabel: $('shareLabel'),
     sheet: $('sheet'), tiles: $('tiles'), openSheet: $('openSheet')
   };
+  document.querySelector('.follow-icons').innerHTML = followLinks();
 
   let now = new Date();
   // Lines for the visitor's own calendar date; null while loading.
@@ -433,6 +436,13 @@
     flash.t = setTimeout(() => { els.shareLabel.textContent = 'Felt the same? Share it'; }, 2400);
   }
 
+  function followPrompt() {
+    const label = $('followPrompt');
+    label.textContent = "Follow for tomorrow's line";
+    clearTimeout(followPrompt.t);
+    followPrompt.t = setTimeout(() => { label.textContent = 'Follow'; }, 2400);
+  }
+
   // The card image is drawn ahead of time so sharing starts straight from the tap
   // (Safari drops navigator.share if it waits too long after the gesture).
   const cards = new Map();
@@ -468,15 +478,16 @@
     const card = cardFor(sel);
     const file = cardFile(card.blob || (await card), sel);
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: 'Daily AI Horoscope', text: text + ' ' + url }); return; } catch (e) { if (e.name === 'AbortError') return; }
+      try { await navigator.share({ files: [file], title: 'Daily AI Horoscope', text: text + ' ' + url }); followPrompt(); return; } catch (e) { if (e.name === 'AbortError') return; }
     } else if (navigator.share) {
-      try { await navigator.share({ title: 'Daily AI Horoscope', text, url }); return; } catch (e) { if (e.name === 'AbortError') return; }
+      try { await navigator.share({ title: 'Daily AI Horoscope', text, url }); followPrompt(); return; } catch (e) { if (e.name === 'AbortError') return; }
     }
     // No share sheet: copy the text and save the image so both can be posted.
     let copied = false;
     try { await navigator.clipboard.writeText(text + ' ' + url); copied = true; } catch (e) {}
     download(file);
     flash(copied ? 'Text copied, image saved' : 'Image saved');
+    followPrompt();
   }
 
   function wrap(ctx, text, maxW) {
@@ -488,6 +499,45 @@
     });
     if (line) out.push(line);
     return out;
+  }
+
+  function drawSocialIcon(ctx, platform, x, y, size, color) {
+    const k = size / 24;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(k, k);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    if (platform === 'instagram') {
+      ctx.beginPath(); ctx.roundRect(3, 3, 18, 18, 5); ctx.stroke();
+      ctx.beginPath(); ctx.arc(12, 12, 4, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(17.5, 6.5, 1, 0, Math.PI * 2); ctx.fill();
+    } else if (platform === 'facebook') {
+      ctx.beginPath(); ctx.moveTo(15, 21); ctx.lineTo(15, 13); ctx.lineTo(18, 13);
+      ctx.lineTo(18.5, 9); ctx.lineTo(15, 9); ctx.lineTo(15, 7);
+      ctx.bezierCurveTo(15, 5.8, 15.4, 5, 17, 5); ctx.lineTo(18.7, 5);
+      ctx.lineTo(18.7, 1.4); ctx.bezierCurveTo(17.9, 1.2, 16.8, 1, 15.5, 1);
+      ctx.bezierCurveTo(12.3, 1, 10, 2.9, 10, 6.5); ctx.lineTo(10, 9);
+      ctx.lineTo(7, 9); ctx.lineTo(7, 13); ctx.lineTo(10, 13); ctx.lineTo(10, 21);
+      ctx.closePath(); ctx.fill();
+    } else if (platform === 'bluesky') {
+      ctx.beginPath(); ctx.moveTo(12, 12);
+      ctx.bezierCurveTo(9, 8, 4.4, 4.2, 2.7, 5.1);
+      ctx.bezierCurveTo(1.1, 5.9, 2.2, 10.5, 4.2, 12.3);
+      ctx.bezierCurveTo(5.8, 13.8, 8.2, 13.9, 12, 12);
+      ctx.bezierCurveTo(8.2, 13.9, 6.8, 15.7, 7.4, 17.6);
+      ctx.bezierCurveTo(8, 19.4, 10, 19.4, 12, 15.5);
+      ctx.bezierCurveTo(14, 19.4, 16, 19.4, 16.6, 17.6);
+      ctx.bezierCurveTo(17.2, 15.7, 15.8, 13.9, 12, 12);
+      ctx.bezierCurveTo(15.8, 13.9, 18.2, 13.8, 19.8, 12.3);
+      ctx.bezierCurveTo(21.8, 10.5, 22.9, 5.9, 21.3, 5.1);
+      ctx.bezierCurveTo(19.6, 4.2, 15, 8, 12, 12);
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   // 1080x1350 card for stories and feeds.
@@ -565,8 +615,14 @@
     const lh = (size + 2) * 1.1;
     lines.forEach((l, i) => ctx.fillText(l, P, 1040 + i * lh));
 
+    const footerY = H - P;
+    let iconX = P;
+    SOCIAL_LINKS.forEach(({ platform }) => {
+      drawSocialIcon(ctx, platform, iconX, footerY, 26, '#111111');
+      iconX += 34;
+    });
     ctx.font = '700 26px "Space Mono"';
-    ctx.fillText(SITE.replace(/^https?:\/\//, ''), P, H - P);
+    ctx.fillText(SOCIAL_LINKS[0].handle + ' · ' + SITE.replace(/^https?:\/\//, ''), iconX + 4, footerY);
     return new Promise((r) => cv.toBlob(r, 'image/png'));
   }
 
@@ -577,9 +633,10 @@
     const card = cardFor(sel);
     const file = cardFile(card.blob || (await card), sel);
     if (navigator.canShare && navigator.canShare({ files: [file] }) && matchMedia('(pointer: coarse)').matches) {
-      try { await navigator.share({ files: [file], title: 'Daily AI Horoscope' }); return; } catch (e) { if (e.name === 'AbortError') return; }
+      try { await navigator.share({ files: [file], title: 'Daily AI Horoscope' }); followPrompt(); return; } catch (e) { if (e.name === 'AbortError') return; }
     }
     download(file);
+    followPrompt();
   }
 
   // ---------- Wire up ----------
@@ -593,6 +650,10 @@
   $('tipClose').addEventListener('click', () => setFocus(null));
   $('share').addEventListener('click', share);
   $('save').addEventListener('click', save);
+  $('followRow').addEventListener('click', (event) => {
+    const link = event.target.closest('[data-platform]');
+    if (link) track('follow_click', { platform: link.dataset.platform });
+  });
 
   state.sky = computeSky(now);
   fillPickers();

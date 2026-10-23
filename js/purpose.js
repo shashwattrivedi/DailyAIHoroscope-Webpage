@@ -1,6 +1,9 @@
+import { followLinks } from './social-links.js';
+
 (function () {
   const $ = (id) => document.getElementById(id);
   const picked = {};
+  document.querySelector('.foot-follow-icons').innerHTML = followLinks('foot-follow-icon');
 
   function renderLines(lines) {
     const box = $('lines');
@@ -78,6 +81,10 @@
   const read = $('read');
   read.addEventListener('toggle', () => { if (read.open) track('open_read_stories'); });
   read.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => track('read_stories', { platform: a.firstChild.textContent.trim() })));
+  document.querySelector('.foot-follow-icons').addEventListener('click', (event) => {
+    const link = event.target.closest('[data-platform]');
+    if (link) track('follow_click', { platform: link.dataset.platform });
+  });
   document.querySelector('.felt .btn.dark').addEventListener('click', () => track('share_story'));
 
   // Close the menu on Escape or a click elsewhere.

@@ -133,6 +133,11 @@ p { margin: 0; }
 
 .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 24px 0 40px; border-top: 1px solid #2E2E2E; font-size: 14px; color: #A9A69F; }
 .foot a { color: #F5F3EE; }
+.foot-follow { display: inline-flex; align-items: center; gap: 8px; }
+.foot-follow-icons { display: inline-flex; align-items: center; gap: 2px; }
+.foot-follow-icon { color: #F5F3EE !important; }
+.foot-follow-icon:hover { background: rgba(245, 243, 238, .1); }
+.foot-follow-icon svg { width: 20px; height: 20px; }
 
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .verdict { animation: none; } }
