@@ -59,7 +59,7 @@ A Cloudflare Worker writes 12 lines per calendar date with Workers AI and stores
 - A cron runs once a day at 10:00 UTC, when a new date starts. It writes that date's lines into KV and publishes them to the public R2 bucket `dailyaihoroscope-data` as `data/YYYY-MM-DD.json`. Nothing is public before the date starts.
 - Visitors load that file from the CDN, so the Worker isn't called at all. The page only falls back to the Worker API if the file is missing; if a date is missing everywhere, the first request generates it.
 - The file's address is the `horoscope-data` meta tag: https://data.dailyaihoroscope.com (R2 custom domain, with a Cache Rule so the CDN caches it). While it is empty, pages use the API.
-- Each sign gets two random moods; the lines ignore the sign's traditional traits.
+- Each sign gets two random moods, a life area and a way of opening; the lines ignore the sign's traditional traits. The prompt (`worker/src/writer.js`) asks for the voice of a newspaper horoscope, shaped by style statistics of ~13,000 published horoscopes (length, "you", predictions, life areas, openings; no text from them is used). Each line is checked for advice, health or money, sign names, clichés and length, and the day is rewritten (up to 3 times) if any fails.
 - `GET /v1/horoscope?date=YYYY-MM-DD` returns `{ date, signs: { Aries: "...", ... } }`. Dates that have not started anywhere yet return 404.
 
 ## Social media (worker/src/social.js)

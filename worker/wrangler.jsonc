@@ -14,7 +14,10 @@
   // Settings only. Keys and passwords are secrets: `npx wrangler secret put NAME`
   // (see .dev.vars.example), never in this file.
   "vars": {
-    "MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    // The model that writes the lines (Workers AI), and options passed with each request.
+    // Gemma 4 thinks before answering unless told not to, and then runs out of tokens.
+    "MODEL": "@cf/google/gemma-4-26b-a4b-it",
+    "MODEL_OPTIONS": { "chat_template_kwargs": { "enable_thinking": false } },
     "SITE": "https://dailyaihoroscope.com",
     // Platforms to post to: bluesky, x, facebook, instagram, instagram_story, reddit.
     "SOCIAL": "bluesky,facebook,instagram,instagram_story",

@@ -10,12 +10,12 @@
 // data/YYYY-MM-DD.json, which the CDN serves to visitors without running this Worker.
 // /v1/horoscope is only the fallback.
 
+import { write } from './writer.js';
 import { share } from './social.js';
 import { buildSite, imagesLive, checkTokens, alert } from './ops.js';
 import { updateStats } from './stats.js';
 import { dailyReport, dashboard } from './report.js';
 
-const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpius', 'Sagittarius', 'Capricornus', 'Aquarius', 'Pisces'];
 const FIRST_TZ = 14; // hours ahead of UTC
 const LAST_TZ = -12;
 const DAY = 86400000;
@@ -30,66 +30,10 @@ function datesBetween(a, b) {
   return out;
 }
 
-// Each sign gets two random moods, so the lines have nothing to do with the sign itself.
-const MOODS = ['fear', 'disappointment', 'strength', 'uncertainty', 'anxiety', 'playfulness', 'joy', 'caution', 'independence',
-  'stability', 'balance', 'optimism', 'stress', 'clarity', 'restlessness', 'hesitation', 'overwhelm', 'doubt', 'perseverance',
-  'creativity', 'tranquility', 'motivation', 'enthusiasm', 'conflict', 'healing', 'solitude', 'resilience', 'frustration',
-  'sadness', 'reflection', 'nostalgia', 'curiosity', 'impatience', 'gratitude', 'boredom', 'courage', 'relief', 'confusion',
-  'surprise', 'pride', 'regret', 'hope', 'calm', 'excitement', 'loneliness', 'warmth', 'tiredness', 'determination'];
-
-function pick(list, n) {
-  const a = list.slice();
-  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
-  return a.slice(0, n);
-}
-
-function prompt(previous) {
-  const moods = pick(MOODS, 24);
-  return `Write 12 short horoscope-style sentences for one day, one per line, each built around the two moods given.
-Rules:
-- One sentence each, 10 to 22 words.
-- Vague and general enough to fit almost anyone's day, the way newspaper horoscopes are.
-- Base each sentence only on its two moods. Ignore the zodiac sign's traditional traits completely.
-- No instructions, advice, or commands; do not tell the reader to do anything. Describe, don't direct.
-- Never mention health, medicine, money decisions, or other people's names.
-- Do not mention any sign name inside the sentences.
-${previous ? 'Do not reuse or closely echo any of these lines from the previous day:\n' + Object.values(previous).join('\n') + '\n' : ''}
-Moods:
-${SIGNS.map((s, i) => `${s}: ${moods[i * 2]} + ${moods[i * 2 + 1]}`).join('\n')}
-
-Output exactly 12 lines and nothing else, in this format:
-${SIGNS.map((s) => s + ': <sentence>').join('\n')}`;
-}
-
-function parse(text) {
-  const out = {};
-  for (const raw of String(text).split('\n')) {
-    const m = raw.replace(/[*_#]/g, '').trim().match(/^([A-Za-z]+)\s*:\s*(.+)$/);
-    if (!m) continue;
-    const sign = SIGNS.find((s) => s.toLowerCase() === m[1].toLowerCase() || (s === 'Scorpius' && /^scorpio$/i.test(m[1])) || (s === 'Capricornus' && /^capricorn$/i.test(m[1])));
-    const line = m[2].trim().replace(/^["“]|["”]$/g, '');
-    if (sign && line.length > 10 && line.length < 260) out[sign] = line;
-  }
-  return SIGNS.every((s) => out[s]) ? out : null;
-}
-
 async function generate(env, date) {
   const prev = await env.HOROSCOPES.get('day:' + ymd(Date.parse(date) - DAY), 'json');
-  let last = '';
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const res = await env.AI.run(env.MODEL, {
-      messages: [
-        { role: 'system', content: 'You write short, vague, horoscope-style sentences for a light-hearted experiment about the Barnum effect.' },
-        { role: 'user', content: prompt(prev && prev.signs) }
-      ],
-      max_tokens: 900,
-      temperature: 0.9
-    });
-    last = res.response ?? res.choices?.[0]?.message?.content ?? '';
-    const signs = parse(last);
-    if (signs) return { date, signs, model: env.MODEL, createdAt: new Date().toISOString() };
-  }
-  throw new Error('Model output did not contain 12 signs: ' + last.slice(0, 300));
+  const signs = await write(env, prev && prev.signs);
+  return { date, signs, model: env.MODEL, createdAt: new Date().toISOString() };
 }
 
 // The R2 file is the final version of a day. If two requests write the same missing
