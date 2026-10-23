@@ -12,7 +12,7 @@
 
 import { write } from './writer.js';
 import { share } from './social.js';
-import { buildSite, imagesLive, checkTokens, alert } from './ops.js';
+import { buildSite, imagesLive, checkTokens, tokenProblems, alert } from './ops.js';
 import { updateStats } from './stats.js';
 import { dailyReport, dashboard } from './report.js';
 
@@ -111,7 +111,8 @@ export default {
   // 4. On the hour, updates the hashtag counts on the purpose page (stats.js); at 14:00
   //    also emails the daily report and keeps it for the dashboard (report.js).
   // Anything that is still wrong is emailed: failures that a later run can't fix, and
-  // (at 10:00) keys that are invalid or about to expire.
+  // (at 10:00) keys that are invalid or about to expire. The 10:00 key check is kept in
+  // KV (tokens) for the report and dashboard.
   async scheduled(event, env, ctx) {
     const now = event.scheduledTime || Date.now();
     const hour = new Date(now).getUTCHours(), onHour = new Date(now).getUTCMinutes() === 0, lastRun = hour >= 14;
@@ -141,7 +142,11 @@ export default {
 
     if (onHour) await updateStats(env, now).catch((e) => console.log('[stats] ' + e.message));
     if (lastRun) await dailyReport(env, now).catch((e) => console.log('[report] ' + e.message));
-    if (hour === 10) problems.push(...(await checkTokens(env, now)));
+    if (hour === 10) {
+      const tokens = await checkTokens(env, now);
+      await env.HOROSCOPES.put('tokens', JSON.stringify(tokens));
+      problems.push(...tokenProblems(tokens));
+    }
     if (problems.length) await alert(env, 'Daily AI Horoscope: ' + problems.length + ' problem' + (problems.length > 1 ? 's' : '') + ' (' + last + ')', problems);
   }
 };

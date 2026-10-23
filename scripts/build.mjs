@@ -148,11 +148,12 @@ async function drawImages(date, lineOf) {
         fs.writeFileSync(path.join(OUT, dir, slug(s) + '-' + date + '.' + ext), Buffer.from(img.split(',')[1], 'base64'));
       }
     }
-    // First slide of the Instagram carousel, in the colour of the sign of the season.
-    const [, m, d] = date.split('-').map(Number);
-    const cover = await page.evaluate((...a) => window.drawCover(...a), SIGNS[signIndex(m, d)].key, label, SITE.replace(/^https?:\/\//, ''), false, SOCIAL_LINKS);
+    // First slide of the Instagram carousel: a different sign colour every day, cycling
+    // through all but Aries, so it never matches the next slide (Aries).
+    const coverSign = SIGNS[(Math.floor(Date.parse(date + 'T00:00:00Z') / 86400000) % 11) + 1];
+    const cover = await page.evaluate((...a) => window.drawCover(...a), coverSign.key, label, SITE.replace(/^https?:\/\//, ''), false, SOCIAL_LINKS);
     fs.writeFileSync(path.join(OUT, 'post', 'cover-' + date + '.jpg'), Buffer.from(cover.split(',')[1], 'base64'));
-    const storyCover = await page.evaluate((...a) => window.drawCover(...a), SIGNS[signIndex(m, d)].key, label, SITE.replace(/^https?:\/\//, ''), true, SOCIAL_LINKS);
+    const storyCover = await page.evaluate((...a) => window.drawCover(...a), coverSign.key, label, SITE.replace(/^https?:\/\//, ''), true, SOCIAL_LINKS);
     fs.writeFileSync(path.join(OUT, 'story', 'cover-' + date + '.jpg'), Buffer.from(storyCover.split(',')[1], 'base64'));
     return true;
   } finally {
@@ -325,9 +326,21 @@ for (const file of fs.readdirSync(path.join(OUT, 'js')).filter((f) => f.endsWith
   });
   if (versioned !== source) fs.writeFileSync(path.join(OUT, file), versioned);
 }
+// Early Hints: each page's fonts, CSS, modules and connections as a Link header, which
+// Cloudflare sends (103) while the page itself is still on its way.
+const hints = [];
 for (const f of fs.readdirSync(OUT).filter((f) => f.endsWith('.html'))) {
-  const html = fs.readFileSync(path.join(OUT, f), 'utf8');
-  write(f, html.replace(/((?:href|src)=")((?:css|js)\/[^"?#]+\.(?:css|js))"/g, (m, attr, file) => attr + file + '?v=' + hashOf(file) + '"'));
+  const html = fs.readFileSync(path.join(OUT, f), 'utf8').replace(/((?:href|src)=")((?:css|js)\/[^"?#]+\.(?:css|js))"/g, (m, attr, file) => attr + file + '?v=' + hashOf(file) + '"');
+  write(f, html);
+  const attr = (tag, name) => (tag.match(new RegExp(' ' + name + '="([^"]+)"')) || [])[1];
+  const links = [...html.matchAll(/<link rel="(preload|preconnect|modulepreload|stylesheet)" href="([^"]+)"[^>]*>/g)].map(([tag, rel, href]) => {
+    const url = '<' + (/^https?:/.test(href) ? href : '/' + href) + '>';
+    const cors = / crossorigin\b/.test(tag) ? '; crossorigin' : '';
+    if (rel === 'stylesheet') return url + '; rel=preload; as=style';
+    if (rel === 'preload') return url + '; rel=preload; as=' + attr(tag, 'as') + (attr(tag, 'type') ? '; type="' + attr(tag, 'type') + '"' : '') + cors;
+    return url + '; rel=' + rel + cors;
+  });
+  if (f !== '404.html' && links.length) hints.push((f === 'index.html' ? '/' : '/' + f.slice(0, -5)) + '\n  Link: ' + links.join(', ') + '\n\n');
 }
 
 const lastmod = date;
@@ -342,6 +355,6 @@ write('_headers', 'https://:project.pages.dev/*\n  X-Robots-Tag: noindex\n\nhttp
   // CSS and JS are versioned by content hash (above); pages are checked on every visit.
   '/css/*\n  Cache-Control: public, max-age=31536000, immutable\n\n/js/*\n  Cache-Control: public, max-age=31536000, immutable\n\n' +
   // Start pages that read the feeds in the browser need CORS.
-  '/feed.xml\n  Access-Control-Allow-Origin: *\n\n/feed/*\n  Access-Control-Allow-Origin: *\n');
+  '/feed.xml\n  Access-Control-Allow-Origin: *\n\n/feed/*\n  Access-Control-Allow-Origin: *\n\n' + hints.join(''));
 
 console.log('Built dist/ for ' + (day ? Object.keys(baked).join(', ') : 'no date') + ' (' + urls.length + ' pages' + (images ? ', 38 images' : '') + ', ' + (SIGNS.length + 1) + ' feeds)');

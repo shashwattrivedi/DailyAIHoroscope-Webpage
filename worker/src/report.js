@@ -8,8 +8,9 @@
 // - Bluesky: public profile and post counts. Instagram and Facebook: Graph API with
 //   the Page token the posting already uses.
 // - Hashtag stories (stats.js), and what the Worker wrote and posted that day.
+// - Keys: the expiry and state of every token (checkTokens in ops.js).
 
-import { mail, explain } from './ops.js';
+import { mail, explain, checkTokens } from './ops.js';
 import { SOCIAL_LINKS } from '../../js/social-links.js';
 
 const DAY = 86400000;
@@ -149,6 +150,7 @@ export async function collect(env, now = Date.now()) {
   snap.hashtag = stats ? await stats.json().then((s) => ({ total: s.total, week: s.week })) : null;
   snap.written = !!(await env.HOROSCOPES.get('day:' + date));
   ({ out: snap.posted, parts: snap.postedParts } = await posting(env, date));
+  snap.tokens = await env.HOROSCOPES.get('tokens', 'json'); // from the 10:00 run (ops.js)
   await env.HOROSCOPES.put('report:' + ymd(now), JSON.stringify(snap), { expirationTtl: 400 * 86400 });
   return snap;
 }
@@ -246,6 +248,24 @@ function table(s, prev, hist) {
     (hist ? '<td style="text-align:right;width:130px;border-bottom:1px solid #eee">' + spark(hist.map(get)) + '</td>' : '<td></td>') + '</tr>').join('') + '</table>';
 }
 
+// Every key, its expiry and days left: green when fine or never expires, amber within
+// 30 days, red within 7 days or when it doesn't work.
+function tokens(t, now) {
+  if (!t) return '<p style="font-size:13px;color:#777">Keys: not checked yet (the 10:00 UTC run checks them).</p>';
+  const cell = 'padding:6px 8px 6px 0;border-bottom:1px solid #eee';
+  return '<b>Keys</b> <span style="font-size:12px;color:#777">checked ' + esc(t.at.replace('T', ' ').slice(0, 16)) + ' UTC</span>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:6px">' + t.rows.map((r) => {
+      const days = r.expires ? Math.floor((r.expires - now) / DAY) : null;
+      const bad = !r.ok || (days != null && days <= 7), warn = days != null && days <= 30;
+      const dot = bad ? '#C0392B' : warn ? '#E0A100' : '#1F9D55';
+      return '<tr><td style="' + cell + '"><span style="color:' + dot + '">●</span> ' + esc(r.name) +
+        '<div style="font-size:12px;color:#777">' + esc(r.secret) + (r.note ? ' · ' + esc(r.note) : '') + '</div></td>' +
+        '<td style="' + cell + ';white-space:nowrap">' + (r.expires ? ymd(r.expires) : r.ok ? 'never' : '—') + '</td>' +
+        '<td style="' + cell + ';text-align:right;white-space:nowrap;font-weight:800;color:' + dot + '">' + (days != null ? days + ' days' : r.ok ? 'OK' : 'failing') + '</td>' +
+        '<td style="' + cell + ';text-align:right"><a href="' + esc(r.renew) + '" style="font-size:12px">renew</a></td></tr>';
+    }).join('') + '</table>';
+}
+
 const SOCIAL_REPORT_LINKS = SOCIAL_LINKS.map(({ url, label }) => '<a href="' + url + '">' + label + '</a>').join(' · ');
 const LINKS = '<p style="font-size:13px"><a href="https://analytics.google.com/">Google Analytics</a> · ' + SOCIAL_REPORT_LINKS + ' · ' +
   '<a href="https://dash.cloudflare.com/">Cloudflare</a> · <a href="https://dailyaihoroscope.com/">Site</a></p>';
@@ -255,7 +275,7 @@ export async function dailyReport(env, now = Date.now()) {
   const snap = await collect(env, now);
   const prev = await env.HOROSCOPES.get('report:' + ymd(now - DAY), 'json');
   const body = '<div style="font-family:system-ui,sans-serif;max-width:640px;color:#111">' +
-    '<h2 style="margin:0 0 8px">Daily AI Horoscope · ' + esc(ymd(now)) + '</h2>' + dates(snap) + status(snap) + table(snap, prev) + lists(snap) + errors(snap) +
+    '<h2 style="margin:0 0 8px">Daily AI Horoscope · ' + esc(ymd(now)) + '</h2>' + dates(snap) + status(snap) + table(snap, prev) + lists(snap) + errors(snap) + tokens(snap.tokens, now) +
     (env.DASHBOARD_URL ? '<p><a href="' + esc(env.DASHBOARD_URL) + '">Open the dashboard</a> (30-day trends)</p>' : '') + LINKS +
     '<p style="font-size:12px;color:#777">Changes are against the previous day\'s report.</p></div>';
   await mail(env, 'Daily AI Horoscope report · ' + ymd(now), body, 'html');
@@ -284,6 +304,7 @@ export async function dashboard(req, env) {
   if (!cookie || cookie[1] !== want) return notFound;
 
   if (url.searchParams.has('refresh') || url.searchParams.has('mail')) {
+    await env.HOROSCOPES.put('tokens', JSON.stringify(await checkTokens(env)));
     await (url.searchParams.has('mail') ? dailyReport(env) : collect(env));
     return new Response(null, { status: 303, headers: { Location: url.pathname } });
   }
@@ -299,6 +320,7 @@ export async function dashboard(req, env) {
     '<div class="top"><h1>Daily AI Horoscope</h1><span><a class="btn" href="?refresh">Refresh now</a> <a class="btn" href="?mail">Email me this</a></span></div>' +
     (s ? '<p style="color:#555;margin:0">Last collected ' + esc(s.at.replace('T', ' ').slice(0, 16)) + ' UTC · ' + hist.length + ' day' + (hist.length > 1 ? 's' : '') + ' of history</p>' +
       '<div class="card">' + dates(s) + status(s) + '</div><div class="card">' + table(s, prev, hist) + '</div><div class="card">' + lists(s) + errors(s) + '</div>' +
+      '<div class="card">' + tokens(s.tokens, Date.now()) + '</div>' +
       '<div class="card"><b>Last 14 days</b><table style="width:100%;font-size:13px;margin-top:8px">' + days + '</table></div>'
       : '<p>No reports yet. Use Refresh now.</p>') +
     LINKS + '</main></body></html>';
