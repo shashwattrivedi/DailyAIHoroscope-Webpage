@@ -1,0 +1,32 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "horoscopeapp",
+  "server": {},
+  "permissions": {
+    "http": {"enable": true, "domains": ["data.dailyaihoroscope.com"]},
+    "reddit": {"enable": true},
+    "redis": true
+  },
+  "scheduler": {
+    "tasks": {
+      "daily-post": {
+        "endpoint": "/internal/scheduler/daily-post",
+        "cron": "0 12 * * *"
+      }
+    }
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Post today's horoscopes",
+        "description": "Post today's 12 lines now, if they aren't posted yet.",
+        "forUserType": "moderator",
+        "location": "subreddit",
+        "endpoint": "/internal/on/menu/post-now"
+      }
+    ]
+  },
+  "scripts": {
+    "dev": "npm run watch"
+  }
+}

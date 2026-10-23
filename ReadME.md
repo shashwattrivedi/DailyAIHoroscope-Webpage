@@ -73,9 +73,11 @@ At 12:00 UTC, after the site build has published the day's images, the Worker st
 
 - **Bluesky**: 12 separate posts, one per sign with its tall 4:5 card, 30 seconds apart.
 - **X**: a thread: the cover image, then a reply per sign with its card. X bills each post, and a post with a link costs about 13 times more, so the posts have no links (the cards show the address, and the profile links to the site). `X_THREAD=false` posts only the cover.
-- **Facebook**: one Page post with all 12 lines. **Reddit**: one text post in `REDDIT_SUBREDDIT`.
+- **Facebook**: one Page post with all 12 lines. **Reddit**: one text post in `REDDIT_SUBREDDIT` (needs Reddit API keys, which new apps no longer get easily; see the Devvit app below instead).
 - **Instagram**: one carousel of 13 slides: a cover (`post/cover-<date>.jpg`, "swipe to find your sign", in a different sign colour each day) and the 1080×1350 card of each sign (`post/<sign>-<date>.jpg`), with all 12 lines in the caption.
 - **Instagram stories**: 13 stories in zodiac order: a cover (`story/cover-<date>.jpg`, "tap to find your sign") and the 1080×1920 card of each sign (`story/<sign>-<date>.jpg`). The API can't add link stickers, so each card shows the sign's address. Saving them to a Highlight has to be done in the app.
+
+**Reddit (Devvit app, `reddit/`):** a Reddit-hosted app installed in r/DailyAIHoroscope posts the day's lines once a day at 12:00 UTC, reading the public data file (`data.dailyaihoroscope.com`, a fetch domain Reddit has to approve). Run `npm run playtest` in `reddit/` to test it; see `reddit/readme.md`.
 
 Settings are in `worker/wrangler.jsonc` (`SOCIAL` picks the platforms; `SOCIAL_DRY_RUN` is `"true"` until you want real posts, and only logs them). Keys are **Worker secrets, never in the repo**: run `npx wrangler secret put NAME` in your own terminal for each name in `worker/.dev.vars.example`. For local tests, copy that file to `worker/.dev.vars` (ignored by git) and run `npx wrangler dev --test-scheduled`, then open `/__scheduled?cron=0+10,12,14+*+*+*`.
 
