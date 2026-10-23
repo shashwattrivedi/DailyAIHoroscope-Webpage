@@ -140,7 +140,9 @@ h1 { margin: 0; width: max-content; white-space: nowrap; font-weight: 900; font-
 /* Footer */
 .actions { position: relative; padding: 14px var(--pad) 0; display: flex; flex-direction: column; gap: 10px; }
 .share-row { display: flex; gap: 10px; }
-.follow-row { min-height: 44px; display: flex; align-items: center; justify-content: flex-start; gap: 8px; }
+.follow-row { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 0 8px; }
+/* Keeps the row on one line on 360px phones; narrower ones wrap it. */
+@media (max-width: 374px) { .follow-row { column-gap: 4px; } }
 .follow-prompt { font-size: 14px; font-weight: 700; white-space: nowrap; }
 .follow-icons { display: flex; align-items: center; gap: 4px; }
 .follow-icon, .foot-follow-icon {
@@ -182,6 +184,12 @@ h1 { margin: 0; width: max-content; white-space: nowrap; font-weight: 900; font-
 .why-kicker { font-size: 11px; font-weight: 700; letter-spacing: .06em; }
 .why-title { font-size: 15px; font-weight: 800; }
 .why-arrow { width: 38px; height: 38px; flex: none; border-radius: 999px; background: var(--ink); display: flex; align-items: center; justify-content: center; }
+
+/* Too short for one screen (a phone on its side, big zoom): the page scrolls, and the sky
+   keeps a fixed gap (fitQuote sets it). */
+html.scroll, html.scroll body { height: auto; overflow: visible; }
+html.scroll .app { position: relative; height: auto; min-height: 100dvh; }
+html.scroll .sheet-wrap { position: fixed; }
 
 /* Phone: all-signs sheet */
 .sheet-wrap { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: flex-end; }

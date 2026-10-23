@@ -242,6 +242,45 @@ write('embed.html', setMeta(embedHtml, {
   ]
 }));
 
+// /404.html: Pages serves it with status 404 for any address that isn't a file or page.
+// Without it, Pages answers unknown addresses with the home page and status 200, which
+// search engines treat as duplicate pages. It can be served at any depth, so its links
+// and font are absolute and its styles inline.
+write('404.html', `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#111111" />
+  <title>Page not found · Daily AI Horoscope</title>
+  <link rel="icon" href="/media/horoscope.svg" type="image/svg+xml" />
+  <style>
+    @font-face { font-family: 'Outfit'; font-weight: 400 900; font-display: swap; src: url(/fonts/outfit-latin.woff2) format('woff2'); }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #111111; color: #F5F3EE; font-family: 'Outfit', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    main { max-width: 640px; margin: 0 auto; padding: 56px 20px; }
+    h1 { font-size: clamp(40px, 10vw, 64px); line-height: 1; letter-spacing: -.03em; margin: 0 0 16px; }
+    p { font-size: 18px; line-height: 1.5; margin: 0 0 28px; color: rgba(245, 243, 238, .8); }
+    .home { display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 999px; background: #F5F3EE; color: #111111; font-weight: 800; text-decoration: none; }
+    ul { list-style: none; padding: 0; margin: 40px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+    ul a { display: flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; color: #111111; font-weight: 700; text-decoration: none; }
+    a:focus-visible { outline: 3px solid #F5F3EE; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>This page isn’t in the stars.</h1>
+    <p>There’s nothing at this address. Today’s lines are on the home page, or pick your sign.</p>
+    <a class="home" href="/">Today’s horoscopes</a>
+    <ul>
+      ${SIGNS.map((s) => `<li><a href="/${slug(s)}" style="background:${s.color}">${s.name}</a></li>`).join('\n      ')}
+    </ul>
+  </main>
+</body>
+</html>
+`);
+
 // RSS: every sign's line for the last week, newest first; one feed for all signs and one
 // per sign. The line is in the item title too, since start-page widgets often show only that.
 const feedDays = day ? [...days, ...(await olderLines(days[days.length - 1].date, Math.max(0, 7 - days.length)))] : [];

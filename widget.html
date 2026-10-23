@@ -43,6 +43,7 @@
     .name { margin: 0; font-size: 26px; font-weight: 900; line-height: 1; letter-spacing: -.01em; }
     :root:not([data-theme="color"]) .glyph { color: var(--bg); }
     .born { font-size: 11px; opacity: .75; }
+    main { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
     .quote-box { flex: 1; min-height: 0; overflow: hidden; }
     .quote { margin: 0; font-weight: 800; line-height: 1.15; }
 
@@ -72,6 +73,7 @@
     <span class="pill mono" id="date"></span>
   </div>
 
+  <main>
   <div class="pick" id="pick" hidden>
     <h1>Pick your sign</h1>
     <div class="grid" id="grid"></div>
@@ -84,6 +86,7 @@
   <div class="quote-box" id="box" hidden>
     <blockquote class="quote" id="quote"></blockquote>
   </div>
+  </main>
 
   <div class="foot">
     <a id="more" target="_blank" rel="noopener">All 12 signs →</a>

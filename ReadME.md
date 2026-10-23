@@ -27,7 +27,7 @@ Glider.js : [GitHub - NickPiscitelli/Glider.js: A fast, lightweight, dependency 
 
 # Structure
 
-- `index.html`: the daily card (one screen, no scroll). It shows the lines for the visitor's own local date and switches to the next set at local midnight.
+- `index.html`: the daily card (one screen; screens too short for it at a readable size, like a phone on its side, scroll instead). It shows the lines for the visitor's own local date and switches to the next set at local midnight.
 - `purpose.html`: why the site exists (Barnum effect). "Try it" uses the same day's lines; `#tweetIds` takes comma-separated tweet IDs.
 - `js/app.js`: rendering, constellation animation, planets, swipe, share and save-as-image.
 - `js/constellations.js`: constellation figures. `js/signs.js`: signs, dates and colours.
@@ -48,6 +48,7 @@ The pages work as they are (open `index.html` from any static server). The API a
 - a 1200×630 link-preview image per sign (`og/<sign>-<date>.png`), drawn by `scripts/og.html` in headless Chrome (set `CHROME_PATH` if Chrome isn't in the usual place; without Chrome the images are skipped);
 - the widget with the lines baked in, like the pages;
 - RSS feeds of the last week's lines: `feed.xml` (all signs) and `feed/<sign>.xml`, linked from the pages;
+- `404.html`, which Pages serves with status 404 for any address that isn't a page or file (without it, unknown addresses got the home page with status 200);
 - `sitemap.xml`, `robots.txt`, and `_headers` (keeps the `pages.dev` copies out of search). Visitors still get their own local date: the page swaps to it on load if it differs.
 
 `.github/workflows/deploy.yml` runs the build and deploys `dist/` to the Cloudflare Pages project `dailyaihoroscope` on every push, and daily when the Worker starts it at 10:00 UTC, right after a new date starts (no GitHub schedule, because GitHub turns those off after 60 days without commits; the Worker needs the `GH_DISPATCH_TOKEN` secret, a fine-grained token for this repo with Actions: Read and write). It needs the repository secrets `CLOUDFLARE_API_TOKEN` (permission: Account > Cloudflare Pages > Edit) and `CLOUDFLARE_ACCOUNT_ID`.

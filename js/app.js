@@ -170,34 +170,47 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     if (h1.scrollWidth > inner) h1.style.fontSize = Math.max(28, Math.floor(max * inner / h1.scrollWidth)) + 'px';
   }
 
-  // Shrink the line until the sky keeps enough room (nothing ever scrolls).
+  // Shrink the line until the sky keeps enough room on one screen. If it doesn't fit even
+  // at a readable size (a phone on its side, big zoom), the page scrolls instead.
   function fitQuote() {
     fitName();
-    const H = els.app.clientHeight;
+    const H = window.innerHeight;
     const desk = isDesktop();
-    const max = desk ? 52 : 34, min = 15;
+    const wasScroll = document.documentElement.classList.contains('scroll');
+    const max = desk ? 52 : 34, min = desk ? 28 : 16;
     const minGap = desk ? 24 : Math.min(170, H * 0.2);
+    // Room left for the sky. The same in both modes: the gap is the only flexible part.
+    const room = () => H - (els.app.scrollHeight - els.gap.offsetHeight);
     let size = max;
     els.quote.style.fontSize = size + 'px';
-    while (size > min && els.gap.offsetHeight < minGap) {
-      size -= 2;
+    while (size > min && room() < minGap) {
+      size = Math.max(min, size - 2);
       els.quote.style.fontSize = size + 'px';
     }
     els.quote.style.lineHeight = size > 30 ? '' : '1.18';
+    const scroll = room() < minGap;
+    els.gap.style.minHeight = scroll ? minGap + 'px' : '';
+    // A new line can switch modes; the sky and dust are sized for the old one, so redo the
+    // layout (which calls this again, now settled).
+    if (document.documentElement.classList.toggle('scroll', scroll) !== wasScroll && !inLayout) requestAnimationFrame(() => layout());
   }
 
-  function layout() {
-    const W = els.app.clientWidth, H = els.app.clientHeight;
+  let inLayout = false;
+  function layout(animate = false) {
+    inLayout = true;
     fitQuote();
+    inLayout = false;
+    // H: the screen, also when the page scrolls; the dust fills the whole page.
+    const W = els.app.clientWidth, H = Math.min(els.app.clientHeight, window.innerHeight), pageH = els.app.clientHeight;
     box = isDesktop()
       ? { x: 0.39 * W, y: 0.045 * H, w: 0.625 * W, h: Math.max(1, Math.min(0.91 * H, rel($('followRow')).top - 0.045 * H - 40)) }
       : { x: -0.1 * W, y: 0.07 * H, w: 1.2 * W, h: 0.76 * H };
     Object.assign(els.sky.style, { left: box.x + 'px', top: box.y + 'px', width: box.w + 'px', height: box.h + 'px' });
-    const field = seeded(Math.min(160, Math.round((W * H) / 5500)), W, H);
-    els.dust.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    const field = seeded(Math.min(160, Math.round((W * pageH) / 5500)), W, pageH);
+    els.dust.setAttribute('viewBox', '0 0 ' + W + ' ' + pageH);
     els.dust.innerHTML = '<g fill="#FFFFFF">' + field.map((f) =>
       '<circle class="fs" cx="' + f.x.toFixed(1) + '" cy="' + f.y.toFixed(1) + '" r="' + f.r.toFixed(2) + '" style="animation-delay:' + f.d.toFixed(2) + 's;opacity:' + f.o.toFixed(2) + '"></circle>').join('') + '</g>';
-    renderSky(false);
+    renderSky(animate);
   }
 
   // Area (app coordinates) where planets may sit without covering text.
@@ -388,8 +401,14 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
 
   // ---------- Sheet ----------
 
+  // A modal: while it's open, the rest of the app is inert (no focus, taps or screen
+  // reader), so Tab stays in the sheet. Closing gives focus back to where it was.
+  let returnTo = null;
   function openSheet() {
+    if (!els.sheet.hidden) return;
+    returnTo = document.activeElement;
     els.sheet.hidden = false;
+    for (const el of els.app.children) el.inert = el !== els.sheet;
     // The sheet starts below the screen; a plain focus() would scroll the layout to it.
     $('closeSheet').focus({ preventScroll: true });
   }
@@ -397,7 +416,9 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   function closeSheet() {
     if (els.sheet.hidden) return;
     els.sheet.hidden = true;
-    els.openSheet.focus({ preventScroll: true });
+    for (const el of els.app.children) el.inert = false;
+    (returnTo && returnTo.isConnected ? returnTo : els.openSheet).focus({ preventScroll: true });
+    returnTo = null;
   }
 
   // ---------- Swipe ----------
@@ -661,9 +682,16 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDate(); });
 
   let resizeT = 0;
-  window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(layout, 120); });
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => {
+      // The sheet is for phones; the desktop layout has the chips instead.
+      if (isDesktop()) closeSheet();
+      layout();
+    }, 120);
+  });
 
-  const start = () => { layout(); started = true; renderSky(true); performance.mark('sky'); };
+  const start = () => { layout(true); started = true; performance.mark('sky'); };
   Promise.all([
     document.fonts ? document.fonts.ready : null,
     Promise.race([firstLoad, new Promise((r) => setTimeout(r, 3000))])
