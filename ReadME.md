@@ -34,6 +34,7 @@ Glider.js : [GitHub - NickPiscitelli/Glider.js: A fast, lightweight, dependency 
 - `js/astronomy.browser.min.js`: [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT), used for today's planet positions.
 - `widget.html` + `js/widget.js`: the embeddable widget (`/widget?sign=aries&theme=dark`, or no sign to let the visitor pick), for other sites' iframes. No analytics or cookies; its links carry `utm_source=widget` and the embedding site's host.
 - `embed.html` + `js/embed.js`: `/embed`, where site owners pick a sign, look and size, preview the widget and copy the snippet (or just the link, for Notion), with how-tos per platform, the RSS feeds and an FAQ. `?sign=` and `?theme=` preselect the options. It's linked from the home page ("Add to your site", and the sign sheet; GA event `widget_click`) and from every widget ("Get this widget").
+- `js/timing.js`: page timing. When a visitor leaves, it sends the GA event `page_timing` with how long each step took (connection, first byte, first and largest paint, lines shown and from where, sky drawn, time the page was busy, slowest tap, slowest file). Open any page with `?timing` to see the same in the browser console.
 - `worker/`: the Cloudflare Worker that writes the horoscopes (see below).
 - `scripts/build.mjs`: the daily build (see below).
 

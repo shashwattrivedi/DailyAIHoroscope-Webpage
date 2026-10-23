@@ -54,9 +54,12 @@ function bakedLines(date) {
 
 // Otherwise the day's lines are a static file on the CDN (horoscope-data, published by
 // the Worker once the date starts). The Worker API is only the fallback.
+// Marks when the lines arrived and from where (lines:baked, lines:cdn, lines:api) for
+// timing.js.
 async function fetchHoroscope(date) {
+  const got = (from, signs) => { try { performance.mark('lines:' + from); } catch (e) {} return signs; };
   const baked = bakedLines(date);
-  if (baked) return baked;
+  if (baked) return got('baked', baked);
   const meta = (name) => (document.querySelector('meta[name="' + name + '"]') || {}).content;
   const tries = [];
   if (meta('horoscope-data')) tries.push(meta('horoscope-data') + '/data/' + date + '.json');
@@ -64,7 +67,7 @@ async function fetchHoroscope(date) {
   for (const url of tries) {
     try {
       const res = await fetch(url);
-      if (res.ok) return (await res.json()).signs || {};
+      if (res.ok) return got(url.includes('/v1/') ? 'api' : 'cdn', (await res.json()).signs || {});
     } catch (e) {}
   }
   return {};

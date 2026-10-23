@@ -674,7 +674,7 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   let resizeT = 0;
   window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(layout, 120); });
 
-  const start = () => { layout(); started = true; renderSky(true); };
+  const start = () => { layout(); started = true; renderSky(true); performance.mark('sky'); };
   Promise.all([
     document.fonts ? document.fonts.ready : null,
     Promise.race([firstLoad, new Promise((r) => setTimeout(r, 3000))])
