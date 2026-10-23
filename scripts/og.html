@@ -73,6 +73,7 @@
         iconX += size + 8;
       });
       const textX = iconX + 4;
+      ctx.fillStyle = '#111111';
       ctx.font = '700 ' + size + 'px "Space Mono"';
       while (ctx.measureText(site).width > right - textX && size > 18) {
         ctx.font = '700 ' + --size + 'px "Space Mono"';
@@ -218,7 +219,7 @@
       const swipe = (story ? 'TAP' : 'SWIPE') + '  →  FIND YOUR SIGN', sw = ctx.measureText(swipe).width + 48;
       ctx.beginPath(); ctx.roundRect(W - P - sw, H - P - 40, sw, 64, 32); ctx.fill();
       ctx.fillStyle = s.color; ctx.fillText(swipe, W - P - sw + 24, H - P - 40 + 19);
-      drawFooter(ctx, links, site, P, H - P - 18, 26, W - P);
+      drawFooter(ctx, links, site, P, H - P - 18, 26, W - P - sw - 24);
       return cv.toDataURL('image/jpeg', 0.92);
     };
   </script>

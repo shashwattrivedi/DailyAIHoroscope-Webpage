@@ -247,7 +247,7 @@ h1 { margin: 0; width: max-content; white-space: nowrap; font-weight: 900; font-
   h1 { font-size: clamp(80px, 9vw, 128px); line-height: .9; letter-spacing: -.045em; }
   .quote { font-size: 52px; line-height: 1.06; }
   .actions { padding-top: 24px; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
-  .follow-row { flex: 1 0 100%; max-width: 340px; }
+  .follow-row { flex: none; }
   .share { flex: none; width: 340px; min-height: 60px; }
   .why { margin-left: auto; width: 440px; min-height: 60px; padding: 8px 10px 8px 20px; border-radius: 20px; }
   .why-kicker { font-size: 12px; }
