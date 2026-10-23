@@ -43,7 +43,6 @@ a { color: var(--ink); }
 }
 
 /* Background layers */
-.layer { transition: transform .4s cubic-bezier(.2, .8, .2, 1); will-change: transform; }
 .dust { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .sky { position: absolute; pointer-events: none; }
 .sky svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -283,5 +282,4 @@ h1 { margin: 0; width: max-content; white-space: nowrap; font-weight: 900; font-
 
 @media (prefers-reduced-motion: reduce) {
   .st, .ln, .rise, .fs, .planet, .planet .ring, .sheet, .scrim, .tip { animation: none; opacity: 1; stroke-dashoffset: 0; }
-  .layer { transition: none; }
 }

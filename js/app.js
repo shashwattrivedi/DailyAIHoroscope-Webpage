@@ -31,7 +31,7 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   const pageSign = SIGNS.findIndex((s) => s.key === els.app.dataset.sign);
   let started = false;
 
-  const state = { sel: initialSign(), focus: null, sky: [], px: 0, py: 0 };
+  const state = { sel: initialSign(), focus: null, sky: [] };
 
   function initialSign() {
     if (pageSign >= 0) return pageSign;
@@ -400,46 +400,17 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     els.openSheet.focus({ preventScroll: true });
   }
 
-  // ---------- Motion: cursor, tilt, swipe ----------
+  // ---------- Swipe ----------
 
-  let raf = 0;
-  function applyParallax() {
-    raf = 0;
-    const { px, py } = state;
-    els.sky.style.transform = 'translate(' + px * -26 + 'px,' + py * -26 + 'px) rotate(' + px * 2.5 + 'deg)';
-    els.dust.style.transform = 'translate(' + px * 10 + 'px,' + py * 10 + 'px)';
-    els.quote.style.transform = 'translate(' + px * 4 + 'px,' + py * 4 + 'px)';
-  }
-  function setTilt(px, py) {
-    if (reduceMotion) return;
-    state.px = Math.max(-1, Math.min(1, px));
-    state.py = Math.max(-1, Math.min(1, py));
-    if (!raf) raf = requestAnimationFrame(applyParallax);
-  }
-
-  let down = null, askedTilt = false;
-  els.app.addEventListener('pointermove', (e) => {
-    if (e.pointerType !== 'mouse') return;
-    setTilt((e.clientX / window.innerWidth - 0.5) * 2, (e.clientY / window.innerHeight - 0.5) * 2);
-  });
-  document.addEventListener('pointerleave', () => setTilt(0, 0));
+  let down = null;
   els.app.addEventListener('pointerdown', (e) => {
     down = els.sheet.hidden && !e.target.closest('select') ? [e.clientX, e.clientY] : null;
-    // iOS only allows motion access after a tap.
-    if (!askedTilt && window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      askedTilt = true;
-      DeviceOrientationEvent.requestPermission().catch(() => {});
-    }
   });
   els.app.addEventListener('pointerup', (e) => {
     if (!down) return;
     const dx = e.clientX - down[0], dy = e.clientY - down[1];
     down = null;
     if (Math.abs(dx) > 60 && Math.abs(dy) < 60) select((state.sel + (dx < 0 ? 1 : 11)) % 12);
-  });
-  window.addEventListener('deviceorientation', (e) => {
-    if (e.gamma == null) return;
-    setTilt(e.gamma / 25, (e.beta - 45) / 25);
   });
 
   document.addEventListener('keydown', (e) => {

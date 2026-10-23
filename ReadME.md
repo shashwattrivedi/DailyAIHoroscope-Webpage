@@ -29,7 +29,7 @@ Glider.js : [GitHub - NickPiscitelli/Glider.js: A fast, lightweight, dependency 
 
 - `index.html`: the daily card (one screen, no scroll). It shows the lines for the visitor's own local date and switches to the next set at local midnight.
 - `purpose.html`: why the site exists (Barnum effect). "Try it" uses the same day's lines; `#tweetIds` takes comma-separated tweet IDs.
-- `js/app.js`: rendering, constellation animation, planets, parallax, share and save-as-image.
+- `js/app.js`: rendering, constellation animation, planets, swipe, share and save-as-image.
 - `js/constellations.js`: constellation figures. `js/signs.js`: signs, dates and colours.
 - `js/astronomy.browser.min.js`: [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT), used for today's planet positions.
 - `widget.html` + `js/widget.js`: the embeddable widget (`/widget?sign=aries&theme=dark`, or no sign to let the visitor pick), for other sites' iframes. No analytics or cookies; its links carry `utm_source=widget` and the embedding site's host.

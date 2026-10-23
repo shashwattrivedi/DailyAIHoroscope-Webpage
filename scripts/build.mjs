@@ -109,14 +109,14 @@ function signPage(template, day, i, meta) {
   const s = SIGNS[i];
   let html = setMeta(template, meta);
   html = replace(html, '<!-- FOLLOW_LINKS -->', followLinks());
-  // The sign colour goes on <html>, the one place app.js updates it when the sign changes.
+  // The first sign's colour, for the first paint; app.js sets it on the elements that use it.
   html = replace(html, '<html lang="en">', '<html lang="en" style="--bg: ' + s.color + '">');
   html = replace(html, '<div class="app" id="app">', '<div class="app" id="app" data-sign="' + s.key + '">');
   html = html.replace(/(<meta name="theme-color" content=")[^"]*/, '$1' + s.color);
   html = replace(html, '<span class="mono born" id="born"></span>', '<span class="mono born" id="born">BORN ' + s.dates + '</span>');
   html = replace(html, '<h1 id="signName"></h1>', '<h1 id="signName">' + s.name + '</h1>');
   if (day) {
-    html = replace(html, '<blockquote class="quote layer" id="quote"></blockquote>', '<blockquote class="quote layer" id="quote">“' + esc(day.signs[dataKey(s)]) + '”</blockquote>');
+    html = replace(html, '<blockquote class="quote" id="quote"></blockquote>', '<blockquote class="quote" id="quote">“' + esc(day.signs[dataKey(s)]) + '”</blockquote>');
     html = replace(html, '<script src="js/astronomy.browser.min.js" defer>', bakedScript() + '<script src="js/astronomy.browser.min.js" defer>');
   }
   return html;
