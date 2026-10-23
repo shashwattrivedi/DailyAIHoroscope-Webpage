@@ -17,7 +17,16 @@ const SIGNS = [
   { key: 'pisces', name: 'Pisces', glyph: '♓︎', dates: 'FEB 19 – MAR 20', color: '#D49BFF', iau: 'Psc', span: [351.6, 388.7] }
 ];
 
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+// The brand mark, Saturn ♄: one stroked path (round caps and joins) in an 800 × 800
+// box. The site header (build.mjs), the icons (scripts/brand.mjs) and the post and
+// preview images (scripts/og.html) all draw it from here; see BRAND.md. box: the
+// viewBox around the path with a stroke of up to 90.
+const SATURN = {
+  d: 'M330 130V640M225 240H440M330 470C380 370 560 350 555 475C552 560 455 590 470 660C480 705 545 705 580 668',
+  box: '180 85 445 655'
+};
+
+const MONTH_NAMES =['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 // Sign by calendar date (Aries starts Mar 21). Returns an index into SIGNS.
 function signIndex(m, d) {

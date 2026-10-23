@@ -27,8 +27,8 @@ const ymd = (ms) => new Date(ms).toISOString().slice(0, 10);
 
 // SIGNS, signIndex and dataKey come from the same file the pages use.
 const ctx = {};
-vm.runInNewContext(read('js/signs.js') + '\nthis.SIGNS = SIGNS; this.signIndex = signIndex; this.dataKey = dataKey;', ctx);
-const { SIGNS, signIndex, dataKey } = ctx;
+vm.runInNewContext(read('js/signs.js') + '\nthis.SIGNS = SIGNS; this.signIndex = signIndex; this.dataKey = dataKey; this.SATURN = SATURN;', ctx);
+const { SIGNS, signIndex, dataKey, SATURN } = ctx;
 const slug = (s) => s.name.toLowerCase();
 
 // Every date that is "today" somewhere on Earth (UTC-12 to UTC+14: two or three dates),
@@ -264,7 +264,10 @@ write('404.html', `<!doctype html>
   <meta name="robots" content="noindex" />
   <meta name="theme-color" content="#111111" />
   <title>Page not found · Daily AI Horoscope</title>
-  <link rel="icon" href="/media/horoscope.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon.ico" sizes="48x48" />
+  <link rel="icon" href="/media/brand/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/media/brand/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   <style>
     @font-face { font-family: 'Outfit'; font-weight: 400 900; font-display: swap; src: url(/fonts/outfit-latin.woff2) format('woff2'); }
     * { box-sizing: border-box; }
@@ -338,8 +341,11 @@ for (const file of fs.readdirSync(path.join(OUT, 'js')).filter((f) => f.endsWith
 // Early Hints: each page's fonts, CSS, modules and connections as a Link header, which
 // Cloudflare sends (103) while the page itself is still on its way.
 const hints = [];
+// The brand mark (SATURN in signs.js) before the wordmark in every page header, in the
+// text colour; CSS sizes it (.wordmark .mark).
+const mark = '<svg class="mark" viewBox="' + SATURN.box + '" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"><path d="' + SATURN.d + '"/></svg>';
 for (const f of fs.readdirSync(OUT).filter((f) => f.endsWith('.html'))) {
-  const html = fs.readFileSync(path.join(OUT, f), 'utf8').replace(/((?:href|src)=")((?:css|js)\/[^"?#]+\.(?:css|js))"/g, (m, attr, file) => attr + file + '?v=' + hashOf(file) + '"');
+  const html = fs.readFileSync(path.join(OUT, f), 'utf8').replace(/(class="wordmark"[^>]*>)(Daily AI Horoscope<)/g, '$1' + mark + '$2').replace(/((?:href|src)=")((?:css|js)\/[^"?#]+\.(?:css|js))"/g, (m, attr, file) => attr + file + '?v=' + hashOf(file) + '"');
   write(f, html);
   const attr = (tag, name) => (tag.match(new RegExp(' ' + name + '="([^"]+)"')) || [])[1];
   const links = [...html.matchAll(/<link rel="(preload|preconnect|modulepreload|stylesheet)" href="([^"]+)"[^>]*>/g)].map(([tag, rel, href]) => {
@@ -356,6 +362,14 @@ const lastmod = date;
 const urls = ['/', '/purpose', '/embed', '/privacy', '/terms', ...SIGNS.map((s) => '/' + slug(s))];
 write('sitemap.xml', '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
   urls.map((u) => '  <url><loc>' + SITE + (u === '/' ? '/' : u) + '</loc><lastmod>' + lastmod + '</lastmod><changefreq>daily</changefreq></url>').join('\n') + '\n</urlset>\n');
+// Browsers ask for /favicon.ico on their own; the web app manifest is for phones'
+// "add to home screen" (icons drawn by scripts/brand.mjs).
+fs.copyFileSync(path.join(ROOT, 'media', 'brand', 'favicon.ico'), path.join(OUT, 'favicon.ico'));
+write('site.webmanifest', JSON.stringify({
+  name: 'Daily AI Horoscope', short_name: 'AI Horoscope', description: 'Daily horoscopes for all 12 signs, written by an AI. Not astrology.',
+  start_url: '/', scope: '/', display: 'standalone', theme_color: '#FF6BB5', background_color: '#FF6BB5',
+  icons: [192, 512].map((n) => ({ src: '/media/brand/icon-' + n + '.png', sizes: n + 'x' + n, type: 'image/png', purpose: 'any maskable' }))
+}, null, 2) + '\n');
 write('robots.txt', 'User-agent: *\nAllow: /\n\nSitemap: ' + SITE + '/sitemap.xml\n');
 // Keep the pages.dev copies out of search results; the real address is SITE.
 write('_headers', 'https://:project.pages.dev/*\n  X-Robots-Tag: noindex\n\nhttps://:version.:project.pages.dev/*\n  X-Robots-Tag: noindex\n\n' +

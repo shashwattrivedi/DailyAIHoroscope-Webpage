@@ -123,8 +123,7 @@
 
       ctx.fillStyle = '#111111';
       ctx.textBaseline = 'top';
-      ctx.font = '800 ' + L.word + 'px Outfit';
-      ctx.fillText('Daily AI Horoscope', P, top - 8);
+      wordmark(ctx, P, top - 8, L.word);
       const [ps, ph] = L.pill;
       ctx.font = '700 ' + ps + 'px "Space Mono"';
       const dw = ctx.measureText(date).width + 40;
@@ -157,15 +156,27 @@
     };
 
     // Saturn ♄, the brand mark (media/brand), as strokes on an 800 grid scaled by k.
-    function saturn(ctx, k, cx, cy) {
-      const p = (x, y) => [cx + (x - 400) * k, cy + (y - 400) * k];
-      ctx.beginPath();
-      ctx.moveTo(...p(330, 130)); ctx.lineTo(...p(330, 640));
-      ctx.moveTo(...p(225, 240)); ctx.lineTo(...p(440, 240));
-      ctx.moveTo(...p(330, 470));
-      ctx.bezierCurveTo(...p(380, 370), ...p(560, 350), ...p(555, 475));
-      ctx.bezierCurveTo(...p(552, 560), ...p(455, 590), ...p(470, 660));
-      ctx.bezierCurveTo(...p(480, 705), ...p(545, 705), ...p(580, 668));
+    // The brand mark (SATURN in js/signs.js), k times its 800-unit size, centred on
+    // (cx, cy) of the 800 box, stroked width pixels wide.
+    function saturn(ctx, k, cx, cy, width) {
+      ctx.save();
+      ctx.translate(cx - 400 * k, cy - 400 * k);
+      ctx.scale(k, k);
+      ctx.lineWidth = width / k; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.stroke(new Path2D(SATURN.d));
+      ctx.restore();
+    }
+
+    // The small mark and "Daily AI Horoscope" in Outfit 800, size px, top-left at (x, y),
+    // like the site header. Uses the current fill colour for both.
+    function wordmark(ctx, x, y, size) {
+      const k = size * 1.05 / 565, w = size * 0.15;
+      ctx.save();
+      ctx.strokeStyle = ctx.fillStyle;
+      saturn(ctx, k, x + w / 2 + (400 - 225) * k, y + size * 0.5 - 12.5 * k, w);
+      ctx.restore();
+      ctx.font = '800 ' + size + 'px Outfit';
+      ctx.fillText('Daily AI Horoscope', x + 355 * k + w + size * 0.28, y);
     }
 
     // First slide of the Instagram carousel (1080x1350 JPEG): what the post is, and
@@ -194,8 +205,8 @@
       ctx.fillStyle = s.color;
       ctx.fillText(date, W - P - dw + 20, P - 14 + 15);
 
-      ctx.strokeStyle = '#111111'; ctx.lineWidth = 46; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      saturn(ctx, 0.5, W / 2, 330); ctx.stroke();
+      ctx.strokeStyle = '#111111';
+      saturn(ctx, 0.5, W / 2, 330, 46);
 
       ctx.fillStyle = '#111111';
       ctx.font = '900 140px Outfit';

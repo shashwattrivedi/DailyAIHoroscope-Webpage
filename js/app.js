@@ -588,8 +588,16 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
 
     ctx.fillStyle = '#111111';
     ctx.textBaseline = 'top';
+    // The mark (SATURN in signs.js) and the wordmark, as in scripts/og.html.
+    const mk = 42 / 565, mw = 6;
+    ctx.save();
+    ctx.translate(P + mw / 2 - 225 * mk, P - 10 + 20 - 412.5 * mk);
+    ctx.scale(mk, mk);
+    ctx.strokeStyle = '#111111'; ctx.lineWidth = mw / mk; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.stroke(new Path2D(SATURN.d));
+    ctx.restore();
     ctx.font = '800 40px Outfit';
-    ctx.fillText('Daily AI Horoscope', P, P - 10);
+    ctx.fillText('Daily AI Horoscope', P + 355 * mk + mw + 11, P - 10);
     const date = DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()];
     ctx.font = '700 28px "Space Mono"';
     const dw = ctx.measureText(date).width + 44;

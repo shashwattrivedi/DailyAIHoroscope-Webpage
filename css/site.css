@@ -88,7 +88,9 @@ a { color: var(--ink); }
 
 /* Header */
 .top { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--pad); }
-.wordmark { font-weight: 800; font-size: 18px; letter-spacing: -.01em; text-decoration: none; }
+.wordmark { display: inline-flex; align-items: center; gap: .3em; font-weight: 800; font-size: 18px; letter-spacing: -.01em; text-decoration: none; }
+/* The brand mark (build.mjs adds it), the height of the letters plus a little. */
+.wordmark .mark { height: 1.15em; width: auto; flex: none; }
 .date-pill {
   font-family: 'Space Mono', ui-monospace, monospace; font-size: 12px; font-weight: 700;
   padding: 6px 10px; border-radius: 999px;

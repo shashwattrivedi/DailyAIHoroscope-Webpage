@@ -30,13 +30,14 @@ Glider.js : [GitHub - NickPiscitelli/Glider.js: A fast, lightweight, dependency 
 - `index.html`: the daily card (one screen; screens too short for it at a readable size, like a phone on its side, scroll instead). It shows the lines for the visitor's own local date and switches to the next set at local midnight.
 - `purpose.html`: why the site exists (Barnum effect). "Try it" uses the same day's lines; `#tweetIds` takes comma-separated tweet IDs.
 - `js/app.js`: rendering, constellation animation, planets, swipe, share and save-as-image.
-- `js/constellations.js`: constellation figures. `js/signs.js`: signs, dates and colours.
+- `js/constellations.js`: constellation figures. `js/signs.js`: signs, dates and colours, and the brand mark (`SATURN`).
 - `js/astronomy.browser.min.js`: [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT), used for today's planet positions.
 - `widget.html` + `js/widget.js`: the embeddable widget (`/widget?sign=aries&theme=dark`, or no sign to let the visitor pick), for other sites' iframes. No analytics or cookies; its links carry `utm_source=widget` and the embedding site's host.
 - `embed.html` + `js/embed.js`: `/embed`, where site owners pick a sign, look and size, preview the widget and copy the snippet (or just the link, for Notion), with how-tos per platform, the RSS feeds, the open JSON data files (`#data`; the Reddit app's fetch-domain request points to it) and an FAQ. `?sign=` and `?theme=` preselect the options. It's linked from the home page ("Add to your site", and the sign sheet; GA event `widget_click`) and from every widget ("Get this widget").
 - `js/timing.js`: page timing. When a visitor leaves, it sends the GA event `page_timing` with how long each step took (connection, first byte, first and largest paint, lines shown and from where, sky drawn, time the page was busy, slowest tap, slowest file). Open any page with `?timing` to see the same in the browser console.
 - `worker/`: the Cloudflare Worker that writes the horoscopes (see below).
 - `scripts/build.mjs`: the daily build (see below).
+- `media/brand/` and `scripts/brand.mjs`: the logo, favicon, phone icons and social avatars and headers. `node scripts/brand.mjs` redraws the favicon, icons and logo from the mark in `js/signs.js`. See [BRAND.md](BRAND.md).
 
 The pages work as they are (open `index.html` from any static server). The API address is in the `horoscope-api` meta tag of both pages.
 
@@ -50,6 +51,7 @@ The pages work as they are (open `index.html` from any static server). The API a
 - RSS feeds of the last week's lines: `feed.xml` (all signs) and `feed/<sign>.xml`, linked from the pages;
 - `privacy.html` and `terms.html` (`/privacy`, `/terms`), also linked from the Reddit app's settings, which an app that fetches needs;
 - `404.html`, which Pages serves with status 404 for any address that isn't a page or file (without it, unknown addresses got the home page with status 200);
+- the brand mark before "Daily AI Horoscope" in every page header, `/favicon.ico` and `site.webmanifest` (phones' "add to home screen");
 - `sitemap.xml`, `robots.txt`, and `_headers` (keeps the `pages.dev` copies out of search). Visitors still get their own local date: the page swaps to it on load if it differs.
 
 `.github/workflows/deploy.yml` runs the build and deploys `dist/` to the Cloudflare Pages project `dailyaihoroscope` on every push, and daily when the Worker starts it at 10:00 UTC, right after a new date starts (no GitHub schedule, because GitHub turns those off after 60 days without commits; the Worker needs the `GH_DISPATCH_TOKEN` secret, a fine-grained token for this repo with Actions: Read and write). It needs the repository secrets `CLOUDFLARE_API_TOKEN` (permission: Account > Cloudflare Pages > Edit) and `CLOUDFLARE_ACCOUNT_ID`.

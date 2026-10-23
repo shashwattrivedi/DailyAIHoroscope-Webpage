@@ -23,7 +23,8 @@ a:hover { color: #FF9BCD; }
   text-decoration: none; font-weight: 800; font-size: 15px;
 }
 .back:hover { color: #111111; background: #FFFFFF; }
-.wordmark { font-weight: 800; font-size: 18px; }
+.wordmark { display: inline-flex; align-items: center; gap: .3em; font-weight: 800; font-size: 18px; }
+.wordmark .mark { height: 1.15em; width: auto; flex: none; }
 
 /* Phone: keep the way back in reach while scrolling. */
 @media (max-width: 899px) {
