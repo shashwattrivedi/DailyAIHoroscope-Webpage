@@ -185,7 +185,7 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     const W = els.app.clientWidth, H = els.app.clientHeight;
     fitQuote();
     box = isDesktop()
-      ? { x: 0.39 * W, y: 0.045 * H, w: 0.625 * W, h: 0.91 * H }
+      ? { x: 0.39 * W, y: 0.045 * H, w: 0.625 * W, h: Math.max(1, Math.min(0.91 * H, rel($('followRow')).top - 0.045 * H - 40)) }
       : { x: -0.1 * W, y: 0.07 * H, w: 1.2 * W, h: 0.76 * H };
     Object.assign(els.sky.style, { left: box.x + 'px', top: box.y + 'px', width: box.w + 'px', height: box.h + 'px' });
     const field = seeded(Math.min(160, Math.round((W * H) / 5500)), W, H);
@@ -200,8 +200,8 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     const W = els.app.clientWidth;
     const card = rel(els.card);
     if (isDesktop()) {
-      const chips = rel(els.chips), actions = rel(els.actions);
-      return { x: [card.right + 40, W - 60], y: [chips.bottom + 70, actions.top - 40], tipTop: chips.bottom + 12 };
+      const chips = rel(els.chips), actions = rel(els.actions), follow = rel($('followRow'));
+      return { x: [card.right + 40, W - 60], y: [chips.bottom + 70, Math.min(actions.top, follow.top) - 40], tipTop: chips.bottom + 12 };
     }
     const finder = rel(els.finder);
     return { x: [36, W - 36], y: [finder.bottom + 80, card.top - 28], tipTop: finder.bottom + 12 };
@@ -622,7 +622,7 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
       iconX += 34;
     });
     ctx.font = '700 26px "Space Mono"';
-    ctx.fillText(SOCIAL_LINKS[0].handle + ' · ' + SITE.replace(/^https?:\/\//, ''), iconX + 4, footerY);
+    ctx.fillText(SITE.replace(/^https?:\/\//, ''), iconX + 4, footerY);
     return new Promise((r) => cv.toBlob(r, 'image/png'));
   }
 

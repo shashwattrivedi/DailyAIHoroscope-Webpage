@@ -66,14 +66,18 @@
       ctx.restore();
     }
 
-    function drawFooter(ctx, links, site, x, y, size) {
+    function drawFooter(ctx, links, site, x, y, size, right) {
       let iconX = x;
       links.forEach(({ platform }) => {
         socialIcon(ctx, platform, iconX, y, size, '#111111');
         iconX += size + 8;
       });
+      const textX = iconX + 4;
       ctx.font = '700 ' + size + 'px "Space Mono"';
-      ctx.fillText(links[0].handle + ' · ' + site, iconX + 4, y);
+      while (ctx.measureText(site).width > right - textX && size > 18) {
+        ctx.font = '700 ' + --size + 'px "Space Mono"';
+      }
+      ctx.fillText(site, textX, y);
     }
 
     // Three layouts: 'og' is the 1200x630 link preview (PNG); 'post' is the 1080x1350 (4:5)
@@ -147,7 +151,7 @@
       const lh = (size + 2) * 1.12;
       lines.forEach((l, i) => ctx.fillText(l, P, qY + i * lh));
 
-      drawFooter(ctx, links, site, P, L.footY || H - P + 8, L.foot);
+      drawFooter(ctx, links, site, P, L.footY || H - P + 8, L.foot, W - P);
       return cv.toDataURL(L.type, 0.92);
     };
 
@@ -214,7 +218,7 @@
       const swipe = (story ? 'TAP' : 'SWIPE') + '  →  FIND YOUR SIGN', sw = ctx.measureText(swipe).width + 48;
       ctx.beginPath(); ctx.roundRect(W - P - sw, H - P - 40, sw, 64, 32); ctx.fill();
       ctx.fillStyle = s.color; ctx.fillText(swipe, W - P - sw + 24, H - P - 40 + 19);
-      drawFooter(ctx, links, site, P, H - P - 18, 26);
+      drawFooter(ctx, links, site, P, H - P - 18, 26, W - P);
       return cv.toDataURL('image/jpeg', 0.92);
     };
   </script>

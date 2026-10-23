@@ -141,7 +141,7 @@ h1 { margin: 0; width: max-content; white-space: nowrap; font-weight: 900; font-
 /* Footer */
 .actions { position: relative; padding: 14px var(--pad) 0; display: flex; flex-direction: column; gap: 10px; }
 .share-row { display: flex; gap: 10px; }
-.follow-row { min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.follow-row { min-height: 44px; display: flex; align-items: center; justify-content: flex-start; gap: 8px; }
 .follow-prompt { font-size: 14px; font-weight: 700; white-space: nowrap; }
 .follow-icons { display: flex; align-items: center; gap: 4px; }
 .follow-icon, .foot-follow-icon {

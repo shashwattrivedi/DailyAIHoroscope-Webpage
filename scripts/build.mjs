@@ -268,6 +268,15 @@ SIGNS.forEach((s) => feed('feed/' + slug(s) + '.xml', 'Daily AI Horoscope: ' + s
 // stays cached.
 const hashes = {};
 const hashOf = (f) => (hashes[f] ??= crypto.createHash('sha256').update(fs.readFileSync(path.join(OUT, f))).digest('hex').slice(0, 10));
+for (const file of fs.readdirSync(path.join(OUT, 'js')).filter((f) => f.endsWith('.js')).map((f) => 'js/' + f)) {
+  const source = fs.readFileSync(path.join(OUT, file), 'utf8');
+  const versioned = source.replace(/(from\s+['"])(\.{1,2}\/[^'"]+\.js)(['"])/g, (match, before, specifier, after) => {
+    const dependency = path.posix.normalize(path.posix.join(path.posix.dirname(file), specifier));
+    return dependency.startsWith('js/') && fs.existsSync(path.join(OUT, dependency))
+      ? before + specifier + '?v=' + hashOf(dependency) + after : match;
+  });
+  if (versioned !== source) fs.writeFileSync(path.join(OUT, file), versioned);
+}
 for (const f of fs.readdirSync(OUT).filter((f) => f.endsWith('.html'))) {
   const html = fs.readFileSync(path.join(OUT, f), 'utf8');
   write(f, html.replace(/((?:href|src)=")((?:css|js)\/[^"?#]+\.(?:css|js))"/g, (m, attr, file) => attr + file + '?v=' + hashOf(file) + '"'));
