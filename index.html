@@ -80,27 +80,45 @@
       <div class="quote-box" id="quoteBox" aria-live="polite">
         <blockquote class="quote" id="quote"></blockquote>
       </div>
-      <!-- "Did this feel true?" (app.js; the Worker records which model wrote the line). -->
-      <div class="vote" id="vote" role="group" aria-labelledby="voteQ" hidden>
-        <!-- After a vote: how many said yes (app.js). -->
-        <span class="vote-q" id="voteQ" aria-live="polite">Felt true?</span>
-        <button type="button" class="vote-btn" data-felt="1" aria-pressed="false">Yes</button>
-        <button type="button" class="vote-btn" data-felt="0" aria-pressed="false">No</button>
-      </div>
     </main>
 
     <footer class="actions" id="actions">
-      <div class="share-row">
-        <button type="button" class="share" id="share">
-          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
-          <span id="shareLabel">Felt the same? Share it</span>
-        </button>
-        <button type="button" class="save" id="save" aria-label="Save as image" title="Save as image">
-          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>
-        </button>
+      <!-- One button that asks first (app.js): "Felt true? Yes / No", then Share (yes) or
+           "Not today, maybe tomorrow" (no). The Worker records which model wrote the line. -->
+      <div class="decide" id="decide" data-step="ask">
+        <div class="ask-row" id="askRow">
+          <div class="ask" role="group" aria-labelledby="askQ">
+            <span class="ask-q" id="askQ">Felt true?</span>
+            <button type="button" class="vote-btn" data-felt="1">Yes</button>
+            <button type="button" class="vote-btn" data-felt="0">No</button>
+          </div>
+          <button type="button" class="round-btn" id="quickShare" aria-label="Share" title="Share">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
+          </button>
+        </div>
+        <div class="answered" id="answered" hidden>
+          <div class="result">
+            <span class="result-mark" aria-hidden="true">
+              <svg class="mark-yes" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>
+              <svg class="mark-no" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </span>
+            <span class="result-text" id="resultText" aria-live="polite"></span>
+            <button type="button" class="undo" id="undoVote">Undo</button>
+          </div>
+          <div class="share-row">
+            <button type="button" class="share" id="share">
+              <svg class="if-yes" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
+              <svg class="if-no" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+              <span id="shareLabel">Share it</span>
+            </button>
+            <button type="button" class="save" id="save" aria-label="Save as image" title="Save as image">
+              <svg class="if-yes" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>
+              <svg class="if-no" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 8l5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="follow-row" id="followRow">
-        <span class="follow-prompt" id="followPrompt">Follow</span>
         <div class="follow-icons" aria-label="Follow Daily AI Horoscope"><!-- FOLLOW_LINKS --></div>
         <!-- The widget for other sites; app.js adds the sign shown (?sign=). -->
         <a class="get-widget" id="getWidget" data-from="home" href="embed.html">
