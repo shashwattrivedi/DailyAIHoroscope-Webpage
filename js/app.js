@@ -287,7 +287,7 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     els.tip.hidden = false;
   }
 
-  const colourEls = document.querySelectorAll('.date-pill, .all-signs, .share, .chips, .vote');
+  const colourEls = document.querySelectorAll('.date-pill, .all-signs, .decide, .chips');
   function renderText() {
     const s = SIGNS[state.sel];
     // The sign's colour goes only where it's used: --bg on the root would make the browser
@@ -311,7 +311,6 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     els.dots.querySelectorAll('span').forEach((d, i) => d.classList.toggle('on', i === state.sel));
     els.chips.querySelectorAll('.chip').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
     els.tiles.querySelectorAll('.tile').forEach((c, i) => c.setAttribute('aria-pressed', i === state.sel ? 'true' : 'false'));
-    els.shareLabel.textContent = 'Felt the same? Share it';
     renderVote();
     // The widget page opens on the sign shown here.
     widgetLinks.forEach((a) => { a.href = a.dataset.base + '?sign=' + signSlug(s); });
@@ -449,7 +448,10 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   // dah.voter, a random ID, and dah.votes, { date: { Sign: { felt, yes, total } } }.
 
   const VOTES = 'dah.votes';
-  const voteEls = { box: $('vote'), q: $('voteQ'), btns: document.querySelectorAll('.vote-btn') };
+  const voteEls = {
+    box: $('decide'), ask: $('askRow'), q: $('askQ'), answered: $('answered'),
+    result: $('resultText'), btns: document.querySelectorAll('.vote-btn')
+  };
   const read = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
   const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
@@ -460,18 +462,34 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   }
 
   const myVote = () => ((read(VOTES) || {})[localDate(now)] || {})[dataKey(SIGNS[state.sel])];
+  // 'ask' until this sign has an answer today, then 'yes' or 'no'.
+  const step = () => voteEls.box.dataset.step;
+  const MAIN_LABEL = { ask: 'Share it', yes: 'Share it', no: 'Not today, maybe tomorrow' };
+
+  // How many gave the same answer, as a number. Small counts read as an empty site, so
+  // below 10 others it says the reader is one of the first.
+  function resultText(v) {
+    if (!v.total) return 'Saving…';
+    const others = (v.felt ? v.yes : v.total - v.yes) - 1;
+    if (others >= 10) return 'You and ' + others.toLocaleString() + (v.felt ? ' others felt it' : ' others didn’t feel it');
+    return others > 0 ? 'You’re one of the first to answer today' : 'You’re the first to answer today';
+  }
 
   function renderVote(note) {
-    const has = lines && lines[dataKey(SIGNS[state.sel])];
-    voteEls.box.hidden = !has;
-    if (!has) return;
-    const v = myVote();
-    voteEls.btns.forEach((b) => b.setAttribute('aria-pressed', v && String(+v.felt) === b.dataset.felt ? 'true' : 'false'));
-    // The question, or after a vote how many said yes; one short line, so the row never wraps.
-    voteEls.q.textContent = note || (v && v.total ? Math.round((100 * v.yes) / v.total) + '% said yes · ' + v.total : 'Felt true?');
+    const v = lines && lines[dataKey(SIGNS[state.sel])] ? myVote() : null;
+    const s = v ? (v.felt ? 'yes' : 'no') : 'ask';
+    voteEls.box.dataset.step = s;
+    voteEls.ask.hidden = s !== 'ask';
+    voteEls.answered.hidden = s === 'ask';
+    voteEls.q.textContent = s === 'ask' && note ? note : 'Felt true?';
+    if (v) voteEls.result.textContent = resultText(v);
+    els.shareLabel.textContent = MAIN_LABEL[s];
+    $('save').setAttribute('aria-label', s === 'no' ? 'Share' : 'Save as image');
+    $('save').title = s === 'no' ? 'Share' : 'Save as image';
   }
 
   async function castVote(felt) {
+    if (!lines) return;
     const date = localDate(now), sign = dataKey(SIGNS[state.sel]);
     const all = read(VOTES) || {};
     // Keep the last few dates only.
@@ -479,7 +497,7 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     const before = (all[date] || {})[sign];
     (all[date] ||= {})[sign] = { felt, yes: 0, total: 0 };
     write(VOTES, all);
-    renderVote('Saving…');
+    renderVote();
     track('vote', { sign: SIGNS[state.sel].name, felt: felt ? 'yes' : 'no' });
     try {
       const api = document.querySelector('meta[name="horoscope-api"]').content;
@@ -497,6 +515,28 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
     }
   }
 
+  // Back to the question. The Worker keeps one vote per reader and sign, so answering
+  // again replaces it.
+  function undoVote() {
+    const all = read(VOTES) || {};
+    const day = all[localDate(now)];
+    if (day) delete day[dataKey(SIGNS[state.sel])];
+    write(VOTES, all);
+    track('vote_undo', { sign: SIGNS[state.sel].name });
+    renderVote();
+    voteEls.btns[0].focus({ preventScroll: true });
+  }
+
+  // "Not today, maybe tomorrow": how long until the next line, at local midnight.
+  function notToday() {
+    const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const mins = Math.max(1, Math.round((next - Date.now()) / 60000));
+    const h = Math.floor(mins / 60), m = mins % 60;
+    track('not_today', { sign: SIGNS[state.sel].name });
+    flash('New line in ' + (h ? h + 'h ' : '') + m + 'm');
+    followPrompt();
+  }
+
   // ---------- Share and save ----------
 
   const SITE = location.protocol.startsWith('http') ? location.origin : 'https://dailyaihoroscope.com';
@@ -504,15 +544,13 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   function flash(text) {
     els.shareLabel.textContent = text;
     clearTimeout(flash.t);
-    flash.t = setTimeout(() => { els.shareLabel.textContent = 'Felt the same? Share it'; }, 2400);
+    flash.t = setTimeout(() => { els.shareLabel.textContent = MAIN_LABEL[step()]; }, 2400);
   }
 
   function followPrompt() {
-    const label = $('followPrompt');
-    label.textContent = "Follow for tomorrow's line";
     $('followRow').classList.add('prompting');
     clearTimeout(followPrompt.t);
-    followPrompt.t = setTimeout(() => { label.textContent = 'Follow'; $('followRow').classList.remove('prompting'); }, 2400);
+    followPrompt.t = setTimeout(() => $('followRow').classList.remove('prompting'), 2400);
   }
 
   // The card image is drawn ahead of time so sharing starts straight from the tap
@@ -730,9 +768,12 @@ import { SOCIAL_LINKS, followLinks } from './social-links.js';
   $('closeSheet').addEventListener('click', closeSheet);
   $('scrim').addEventListener('click', closeSheet);
   $('tipClose').addEventListener('click', () => setFocus(null));
-  $('share').addEventListener('click', share);
+  // After a "no" the main button is "Not today, maybe tomorrow" and the round one shares.
+  $('share').addEventListener('click', () => (step() === 'no' ? notToday() : share()));
+  $('save').addEventListener('click', () => (step() === 'no' ? share() : save()));
+  $('quickShare').addEventListener('click', share);
+  $('undoVote').addEventListener('click', undoVote);
   voteEls.btns.forEach((b) => b.addEventListener('click', () => castVote(b.dataset.felt === '1')));
-  $('save').addEventListener('click', save);
   $('followRow').addEventListener('click', (event) => {
     const link = event.target.closest('[data-platform]');
     if (link) track('follow_click', { platform: link.dataset.platform });
